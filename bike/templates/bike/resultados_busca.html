@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Tem Bike? - Resultados da Busca</title>
+</head>
+<body>
+    <h1>Serviços de bicicletas em {{ city }}, {{ country }}</h1>
+
+    {% if bikes_data %}
+        <h2>Serviços disponíveis:</h2>
+        <ul>
+            {% for bike in bikes_data %}
+                <li>
+                    <strong>Nome da rede:</strong> {{ bike.name }}<br>
+                    <strong>Empresa:</strong> {{ bike.company }}<br>
+                    <strong>Cidade:</strong> {{ bike.location.city }}<br>
+                    <strong>País:</strong> {{ bike.location.country }}<br>
+                    <strong>Latitude:</strong> {{ bike.location.latitude }}<br>
+                    <strong>Longitude:</strong> {{ bike.location.longitude }}<br>
+                    <br>
+                    <strong>Estações:</strong>
+                    <ul>
+                        {% for station in bike.stations %}
+                            <li>
+                                <strong>Estação:</strong> {{ station.name }}<br>
+                                <strong>Bicicletas disponíveis:</strong> {{ station.free_bikes }}<br>
+                                <strong>Slots vazios:</strong> {{ station.empty_slots }}<br>
+                                <strong>Localização da estação:</strong> ({{ station.latitude }}, {{ station.longitude }})<br>
+                                <strong>Última atualização:</strong> {{ station.timestamp }}<br>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Nenhum serviço de bicicleta encontrado para {{ city }}, {{ country }}.</p>
+    {% endif %}
+    
+    <a href="{% url 'check_bike_service' %}">Fazer nova 

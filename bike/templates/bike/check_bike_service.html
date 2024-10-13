@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Tem Bike?</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Verifique serviços de bike na sua cidade</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Buscar</button>
+    </form>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            // Quando o país for selecionado
+            $('#id_country').change(function(){
+                var country = $(this).val();  // Valor do país selecionado
+                var url = "{% url 'get_cities_by_country' %}?country=" + country;
+                
+                // Requisição AJAX para buscar as cidades
+                $.get(url, function(data){
+                    var citySelect = $('#id_city');
+                    citySelect.empty();  // Limpar as opções existentes
+
+                    // Preencher as novas opções de cidade
+                    $.each(data.cities, function(index, city){
+                        citySelect.append('<option value="' + city + '">' + city + '</option>');
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
