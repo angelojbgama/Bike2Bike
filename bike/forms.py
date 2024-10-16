@@ -233,8 +233,22 @@ def get_available_countries():
     return []
 
 class BikeSearchForm(forms.Form):
-    city = forms.ChoiceField(label='Cidade', choices=[])
-    country = forms.ChoiceField(label='País', choices=[])
+    city = forms.ChoiceField(
+        label='Cidade',
+        choices=[],
+        widget=forms.Select(attrs={
+            'class': 'form-select mb-3',  # Classe Bootstrap para select estilizado
+            'id': 'id_city'
+        })
+    )
+    country = forms.ChoiceField(
+        label='País',
+        choices=[],
+        widget=forms.Select(attrs={
+            'class': 'form-select mb-3',  # Classe Bootstrap para select estilizado
+            'id': 'id_country'
+        })
+    )
 
     def __init__(self, *args, **kwargs):
         super(BikeSearchForm, self).__init__(*args, **kwargs)
