@@ -7,6 +7,8 @@ from django.urls import reverse
 from django.shortcuts import redirect
 from django.views.generic.edit import FormView
 from django.http import HttpResponseRedirect
+from django.views.generic import TemplateView
+import requests
 
 
 def get_cities_by_country(request):
@@ -25,7 +27,6 @@ def get_cities_by_country(request):
     return JsonResponse({'cities': []})
 
 
-
 class BikeServiceView(FormView):
     template_name = 'bike/check_bike_service.html'
     form_class = BikeSearchForm
@@ -41,9 +42,6 @@ class BikeServiceView(FormView):
             'country': country,
         }))
 
-
-from django.views.generic import TemplateView
-import requests
 
 class ResultadosBuscaView(TemplateView):
     template_name = 'bike/resultados_busca.html'
