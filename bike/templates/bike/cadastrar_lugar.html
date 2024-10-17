@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Tem Bike? - Cadastre um Lugar</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Leaflet CSS e JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body {
+            background: url('https://source.unsplash.com/1600x900/?bicycle,city') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .form-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+
+        .card {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            width: 500px;
+            max-width: 900px;
+        }
+
+        h2 {
+            font-weight: 700;
+            color: #333;
+        }
+
+        input, textarea, select {
+            border-radius: 8px;
+            padding: 10px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        #map {
+            height: 300px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .btn-primary, .btn-secondary {
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 12px;
+            width: 100%;
+        }
+
+        .btn-secondary {
+            margin-top: -10px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'cadastrar_lugar' %}">
+                <img src="https://img.icons8.com/ios-filled/50/ffffff/bicycle.png" width="30" height="30" alt="Bike Icon">
+                Tem Bike?
+            </a>
+        </div>
+    </nav>
+
+    <div class="container form-container">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <div class="card shadow-lg">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">Cadastre um Novo Lugar</h2>
+
+                        <form method="POST" id="lugarForm">
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                <label for="id_nome" class="form-label">Nome:</label>
+                                {{ form.nome }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_descricao" class="form-label">Descrição:</label>
+                                {{ form.descricao }}
+                            </div>
+
+                            <!-- Mapa Interativo -->
+                            <div id="map"></div>
+
+                            <button type="button" class="btn btn-secondary" id="geolocationButton">
+                                Usar minha localização atual
+                            </button>
+
+                            <div class="mb-3">
+                                <label for="id_latitude" class="form-label">Latitude:</label>
+                                <input type="text" id="id_latitude" name="latitude" class="form-control" readonly>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_longitude" class="form-label">Longitude:</label>
+                                <input type="text" id="id_longitude" name="longitude" class="form-control" readonly>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="id_tipo" class="form-label">Tipo:</label>
+                                {{ form.tipo }}
+                            </div>
+
+                            <div class="d-grid mt-3">
+                                <button type="submit" class="btn btn-primary">Cadastrar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-auto">
+        <p class="text-center mb-0">© 2024 Tem Bike? - Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        // Inicializando o mapa com Leaflet
+        var map = L.map('map').setView([-23.5505, -46.6333], 13);  // São Paulo como ponto inicial
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var marker;
+
+        // Evento de clique no mapa para definir coordenadas
+        map.on('click', function(e) {
+            var latitude = e.latlng.lat;
+            var longitude = e.latlng.lng;
+
+            // Adiciona ou move o marcador
+            if (marker) {
+                marker.setLatLng(e.latlng);
+            } else {
+                marker = L.marker(e.latlng).addTo(map);
+            }
+
+            // Preenche os campos
+            document.getElementById('id_latitude').value = latitude;
+            document.getElementById('id_longitude').value = longitude;
+        });
+
+        // Botão para pegar a localização atual
+        document.getElementById('geolocationButton').addEventListener('click', function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+
+                    // Atualiza o mapa e marcador
+                    map.setView([lat, lng], 15);
+                    if (marker) {
+                        marker.setLatLng([lat, lng]);
+                    } else {
+                        marker = L.marker([lat, lng]).addTo(map);
+                    }
+
+                    // Preenche os campos de latitude e longitude
+                    document.getElementById('id_latitude').value = lat;
+                    document.getElementById('id_longitude').value = lng;
+                });
+            } else {
+                alert("Geolocalização não é suportada pelo seu navegador.");
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

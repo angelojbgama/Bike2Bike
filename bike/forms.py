@@ -1,4 +1,7 @@
 from django import forms
+
+from .models import Lugar
+
 import requests
 
 # Dicionário para mapear códigos de países para seus nomes em português
@@ -255,3 +258,15 @@ class BikeSearchForm(forms.Form):
         # Preenche as listas de cidades e países dinamicamente
         self.fields['city'].choices = get_available_cities()
         self.fields['country'].choices = get_available_countries()
+        
+############################################################################
+
+
+class LugarForm(forms.ModelForm):
+    class Meta:
+        model = Lugar
+        fields = ['nome', 'descricao', 'latitude', 'longitude', 'tipo']
+        widgets = {
+            'descricao': forms.Textarea(attrs={'rows': 3}),
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
+        }

@@ -138,13 +138,13 @@
             // Inicializa o mapa no centro da cidade fornecida
             var map = L.map('map').setView([{{ bikes_data.0.location.latitude }}, {{ bikes_data.0.location.longitude }}], 13);
     
-            // Adiciona a camada CyclOSM ao mapa
+            // Adiciona camada CyclOSM ao mapa
             L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, CyclOSM',
                 maxZoom: 18
             }).addTo(map);
     
-            // Adiciona marcadores para cada estação
+            // Adiciona marcadores para as estações de bike-sharing
             {% for bike in bikes_data %}
                 {% for station in bike.stations %}
                     L.marker([{{ station.latitude }}, {{ station.longitude }}])
@@ -156,6 +156,17 @@
                             <strong>Endereço:</strong> {{ station.extra.address }}
                         `);
                 {% endfor %}
+            {% endfor %}
+    
+            // Adiciona marcadores para os lugares do banco de dados
+            {% for lugar in lugares_data %}
+                L.marker([{{ lugar.latitude }}, {{ lugar.longitude }}])
+                    .addTo(map)
+                    .bindPopup(`
+                        <strong>{{ lugar.nome }}</strong><br>
+                        <em>{{ lugar.tipo }}</em><br>
+                        {{ lugar.descricao }}
+                    `);
             {% endfor %}
     
             // Botão para Capturar a Localização do Usuário
@@ -181,6 +192,7 @@
             });
         });
     </script>
+    
     
 
 </body>

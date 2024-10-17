@@ -4,6 +4,9 @@ from django.views.generic import TemplateView
 from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from .forms import BikeSearchForm
+
+from django.views.generic import CreateView
+
 import requests
 
 def get_cities_by_country(request):
@@ -98,56 +101,56 @@ class ResultadosBuscaView(TemplateView):
     template_name = 'bike/resultados_busca.html'
 
     def get_context_data(self, **kwargs):
-        """
-        Gera o contexto para renderizar o template com os dados dos serviços de bike-sharing.
-
-        Parâmetros:
-        - kwargs: Parâmetros adicionais, incluindo cidade e país.
-
-        Retorno:
-        - context: Dicionário com dados para serem usados no template.
-        """
         context = super().get_context_data(**kwargs)
         city = self.kwargs['city']
         country = self.kwargs['country']
 
-        # Faz requisição à API CityBikes para obter todas as redes.
+        # Faz requisição à API CityBikes
         response = requests.get('http://api.citybik.es/v2/networks')
         if response.status_code == 200:
             networks = response.json().get('networks', [])
-            # Filtra as redes que correspondem à cidade e ao país fornecidos.
             bikes_data = [
                 network for network in networks
                 if network['location']['city'].lower() == city.lower() and
                 network['location']['country'].lower() == country.lower()
             ]
 
-            # Para cada rede encontrada, faz uma requisição adicional para obter detalhes das estações.
             for bike in bikes_data:
                 network_id = bike['id']
                 network_response = requests.get(f'http://api.citybik.es/v2/networks/{network_id}')
                 if network_response.status_code == 200:
-                    detailed_network = network_response.json().get('network', {})
-                    bike['stations'] = detailed_network.get('stations', [])  # Adiciona estações ao bike.
+                    bike['stations'] = network_response.json().get('network', {}).get('stations', [])
                 else:
-                    bike['stations'] = []  # Se falhar, define lista vazia de estações.
+                    bike['stations'] = []
 
-            context['bikes_data'] = bikes_data  # Adiciona dados de bikes ao contexto.
+            context['bikes_data'] = bikes_data
         else:
-            context['bikes_data'] = []  # Caso a requisição falhe, define lista vazia.
+            context['bikes_data'] = []
 
-        context['city'] = city  # Adiciona cidade ao contexto.
-        context['country'] = country  # Adiciona país ao contexto.
+        # Adiciona lugares do banco de dados ao contexto
+        lugares = Lugar.objects.all()
+        lugares_data = [
+            {
+                'nome': lugar.nome,
+                'descricao': lugar.descricao,
+                'latitude': lugar.latitude,
+                'longitude': lugar.longitude,
+                'tipo': lugar.get_tipo_display()
+            }
+            for lugar in lugares
+        ]
+        context['lugares_data'] = lugares_data
 
-        # Coleta coordenadas das estações para exibir no mapa.
-        stations_coordinates = []
-        for bike in context['bikes_data']:
-            for station in bike.get('stations', []):
-                stations_coordinates.append({
-                    'name': station['name'],
-                    'latitude': station['latitude'],
-                    'longitude': station['longitude'],
-                })
-        context['stations_coordinates'] = stations_coordinates  # Adiciona coordenadas ao contexto.
+        context['city'] = city
+        context['country'] = country
+        return context
 
-        return context  # Retorna o contexto para renderizar o template.
+
+
+from .models import Lugar
+
+class LugarCreateView(CreateView):
+    model = Lugar
+    fields = ['nome', 'descricao', 'latitude', 'longitude', 'tipo']
+    template_name = 'bike/cadastrar_lugar.html'
+    success_url = reverse_lazy('check_bike_service')  # Redireciona após o cadastro
