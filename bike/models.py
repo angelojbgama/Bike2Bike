@@ -7,6 +7,7 @@ TIPOS_DE_LUGARES = {
     'restaurante': 'Restaurante ou café',
     'hotel': 'Hotel ou hospedagem',
     'mercado': 'Supermercado ou feira',
+    'bike_reparo': 'Reparo de bicicleta',   
 }
 
 
