@@ -1,0 +1,96 @@
+{% extends 'base.html' %} {% block title %}Serviços em {{ city }}, {{ country }}{% endblock %} {%block content %}
+
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-12">
+      {% if bikes_data %}
+        <h2 class="mb-3 text-center">Serviços em {{ city }}, {{ country }}:</h2>
+
+        <!-- Mapa Leaflet -->
+        <div id="map" class="my-3"></div>
+
+        <!-- Botão para Capturar Localização -->
+        <div class="text-center mt-4">
+          <button class="btn btn-primary" id="getLocationButton">Minha Localização</button>
+        </div>
+      {% else %}
+        <p class="alert alert-warning text-center">
+          Nenhum serviço de bicicleta encontrado para {{ city }}, {{ country }}.
+        </p>
+      {% endif %}
+
+
+      <!-- Links de Ação -->
+      <div class="text-center mt-4">
+        <a href="{% url 'cadastrar_lugar' %}" class="btn btn-secondary">Cadastrar local</a>
+      </div>
+      
+      <div class="text-center mt-4">
+        <a href="{% url 'check_bike_service' %}" class="btn btn-secondary">Nova busca</a>
+      </div>  
+    
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+      // Inicializa o mapa no centro da cidade fornecida
+      var map = L.map('map').setView([{{ bikes_data.0.location.latitude }}, {{ bikes_data.0.location.longitude }}], 13);
+
+      // Adiciona camada CyclOSM ao mapa
+      L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, CyclOSM',
+          maxZoom: 18
+      }).addTo(map);
+
+      // Adiciona marcadores para os lugares salvos no banco de dados
+      var lugares = {{ lugares_data|safe }};
+      lugares.forEach(function(lugar) {
+          L.marker([lugar.latitude, lugar.longitude])
+              .addTo(map)
+              .bindPopup(`<strong>${lugar.nome}</strong><br><em>${lugar.descricao}</em><br>Tipo: ${lugar.tipo}`);
+      });
+
+      // Adiciona marcadores para cada estação
+      {% for bike in bikes_data %}
+          {% for station in bike.stations %}
+              L.marker([{{ station.latitude }}, {{ station.longitude }}])
+                  .addTo(map)
+                  .bindPopup(`
+                      <strong>Estação:</strong> {{ station.name }}<br>
+                      <strong>Bikes disponíveis:</strong> {{ station.free_bikes }}<br>
+                      <strong>Slots vazios:</strong> {{ station.empty_slots }}<br>
+                      <strong>Endereço:</strong> {{ station.extra.address }}
+                  `);
+          {% endfor %}
+      {% endfor %}
+
+      // Botão para Capturar a Localização do Usuário
+      document.getElementById('getLocationButton').addEventListener('click', function () {
+          if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(function (position) {
+                  var lat = position.coords.latitude;
+                  var lon = position.coords.longitude;
+
+                  // Adiciona um marcador na posição do usuário
+                  L.marker([lat, lon]).addTo(map)
+                      .bindPopup('Você está aqui!')
+                      .openPopup();
+
+                  // Centraliza o mapa na posição do usuário
+                  map.setView([lat, lon], 15);
+              }, function () {
+                  alert('Não foi possível obter sua localização.');
+              });
+          } else {
+              alert('Geolocalização não é suportada pelo seu navegador.');
+          }
+      });
+  });
+</script>
+
+{% endblock %}
