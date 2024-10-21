@@ -1,4 +1,6 @@
-{% extends 'base.html' %} {% block title %}Serviços em {{ city }}, {{ country }}{% endblock %} {%block content %}
+{% extends 'base.html' %}
+{% block title %}Serviços em {{ city }}, {{ country }}{% endblock %}
+{% block content %}
 
 <div class="container mt-5 py-4"> <!-- Ajuste para padding superior e inferior -->
   <div class="row justify-content-center">
@@ -19,7 +21,6 @@
         </p>
       {% endif %}
 
-
       <!-- Links de Ação -->
       <div class="text-center mt-4">
         <a href="{% url 'cadastrar_lugar' %}" class="btn btn-secondary">Cadastrar local</a>
@@ -32,7 +33,6 @@
     </div>
   </div>
 </div>
-
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -61,6 +61,7 @@
               L.marker([{{ station.latitude }}, {{ station.longitude }}])
                   .addTo(map)
                   .bindPopup(`
+                      <strong>{{ bike.name }}</strong><br>
                       <strong>Estação:</strong> {{ station.name }}<br>
                       <strong>Bikes disponíveis:</strong> {{ station.free_bikes }}<br>
                       <strong>Slots vazios:</strong> {{ station.empty_slots }}<br>
