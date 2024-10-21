@@ -4,7 +4,9 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>{% block title %}Tem Bike?{% endblock %}</title>
+
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -30,19 +32,36 @@
                 <img src="https://img.icons8.com/ios-filled/50/ffffff/bicycle.png" width="30" height="30" alt="Bike Icon">
                 Tem Bike?
             </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'check_bike_service' %}">Checar Serviços</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cadastrar_lugar' %}">Cadastrar Lugar</a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
+    
 
 
         {% block content %}{% endblock %}
     
 
-    <footer class="container-fluid bg-dark text-white text-center p-3 mt-4">
+    <!-- Footer sempre na base da página -->
+    <footer class="container-fluid bg-dark text-white text-center p-3">
         <p class="mb-0">© 2024 Tem Bike? - Todos os direitos reservados.</p>
         <p class="mb-0">
             <a href="https://github.com/seuprojeto" target="_blank" class="footer-link">Acesse nosso GitHub</a>
-        </p>    
+        </p>
     </footer>
+
+        
     
 </body>
 </html>
