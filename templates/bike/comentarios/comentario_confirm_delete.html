@@ -1,0 +1,7 @@
+<h1>Confirmar Exclusão</h1>
+<p>Tem certeza de que deseja excluir o comentário "{{ object.texto }}"?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Sim, deletar</button>
+</form>
+<a href="{% url 'comentario_list' %}">Cancelar</a>

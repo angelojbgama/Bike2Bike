@@ -1,0 +1,9 @@
+<h1>Comentários</h1>
+
+<ul>
+    {% for comentario in comentarios %}
+        <li>
+            {{ comentario.texto }} - {{ comentario.data_criacao }}
+        </li>
+    {% endfor %}
+</ul>

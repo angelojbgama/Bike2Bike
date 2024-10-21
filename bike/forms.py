@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Lugar
+from .models import Lugar, Comentario
 
 import requests
 
@@ -270,3 +270,20 @@ class LugarForm(forms.ModelForm):
             'descricao': forms.Textarea(attrs={'rows': 3}),
             'tipo': forms.Select(attrs={'class': 'form-select'}),
         }
+
+from django.shortcuts import get_object_or_404, redirect
+from django.views.generic import TemplateView, FormView
+from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy, reverse, path
+
+class ComentarioForm(forms.ModelForm):
+    """
+    Formulário para adicionar um comentário sobre um lugar específico.
+    """
+    class Meta:
+        model = Comentario
+        fields = ['texto']
+        widgets = {
+            'texto': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Escreva seu comentário aqui...'}),
+        }
+

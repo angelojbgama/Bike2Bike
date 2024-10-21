@@ -50,10 +50,18 @@
       // Adiciona marcadores para os lugares salvos no banco de dados
       var lugares = {{ lugares_data|safe }};
       lugares.forEach(function(lugar) {
+          var popupContent = `
+              <strong>${lugar.nome}</strong><br>
+              <em>${lugar.descricao}</em><br>
+              Tipo: ${lugar.tipo}<br>
+              <a href="${lugar.comentarios_url}" target="_blank">Ver Comentários</a>
+          `;
+      
           L.marker([lugar.latitude, lugar.longitude])
               .addTo(map)
-              .bindPopup(`<strong>${lugar.nome}</strong><br><em>${lugar.descricao}</em><br>Tipo: ${lugar.tipo}`);
+              .bindPopup(popupContent);
       });
+      
 
       // Adiciona marcadores para cada estação
       {% for bike in bikes_data %}

@@ -1,0 +1,12 @@
+<h1>Lista de Comentários</h1>
+<a href="{% url 'comentario_create' %}">Adicionar Comentário</a>
+
+<ul>
+    {% for comentario in comentarios %}
+        <li>
+            {{ comentario.texto }} - {{ comentario.data_criacao }}
+            <a href="{% url 'comentario_update' comentario.pk %}">Editar</a>
+            <a href="{% url 'comentario_delete' comentario.pk %}">Deletar</a>
+        </li>
+    {% endfor %}
+</ul>

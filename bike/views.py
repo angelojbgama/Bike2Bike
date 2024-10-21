@@ -5,6 +5,8 @@ from django.views.generic.edit import FormView
 from django.views.generic import TemplateView, CreateView
 from django.http import JsonResponse, HttpResponseRedirect
 import requests
+from .models import Comentario
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
 
 def get_cities_by_country(request):
@@ -49,6 +51,8 @@ class BikeServiceView(FormView):
             )
         )
 
+
+from django.urls import reverse
 
 class ResultadosBuscaView(TemplateView):
     """
@@ -98,6 +102,7 @@ class ResultadosBuscaView(TemplateView):
                 "latitude": lugar.latitude,
                 "longitude": lugar.longitude,
                 "tipo": lugar.get_tipo_display(),
+                "comentarios_url": reverse('comentario_list_lugar', args=[lugar.id])
             }
             for lugar in lugares
         ]
@@ -123,3 +128,45 @@ class SobreServicoView(TemplateView):
     Exibe a página inicial sobre o serviço.
     """
     template_name = "bike/home.html"
+
+
+
+
+
+
+class ComentarioLugarListView(ListView):
+    model = Comentario
+    template_name = 'bike/comentarios/comentario_lugar_list.html'
+    context_object_name = 'comentarios'
+
+    def get_queryset(self):
+        lugar_id = self.kwargs['lugar_id']
+        return Comentario.objects.filter(lugar_id=lugar_id)
+
+
+
+
+class ComentarioListView(ListView):
+    model = Comentario
+    template_name = 'bike/comentarios/comentario_list.html'
+    context_object_name = 'comentarios'
+
+
+class ComentarioCreateView(CreateView):
+    model = Comentario
+    fields = ['lugar', 'texto']
+    template_name = 'bike/comentarios/comentario_form.html'
+    success_url = reverse_lazy('comentario_list')
+
+
+class ComentarioUpdateView(UpdateView):
+    model = Comentario
+    fields = ['texto']
+    template_name = 'bike/comentarios/comentario_form.html'
+    success_url = reverse_lazy('comentario_list')
+
+
+class ComentarioDeleteView(DeleteView):
+    model = Comentario
+    template_name = 'bike/comentarios/comentario_confirm_delete.html'
+    success_url = reverse_lazy('comentario_list')

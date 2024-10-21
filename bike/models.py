@@ -1,6 +1,5 @@
 from django.db import models
 
-
 TIPOS_DE_LUGARES = {
     'parque': 'Parque público',
     'museu': 'Museu ou galeria de arte',
@@ -9,7 +8,6 @@ TIPOS_DE_LUGARES = {
     'mercado': 'Supermercado ou feira',
     'bike_reparo': 'Reparo de bicicleta',   
 }
-
 
 class Lugar(models.Model):
     """
@@ -29,3 +27,21 @@ class Lugar(models.Model):
 
     def __str__(self):
         return f"{self.nome} ({self.get_tipo_display()})"
+
+    def get_comentarios(self):
+        """
+        Retorna todos os comentários associados a este lugar.
+        """
+        return self.comentarios.all()
+
+
+class Comentario(models.Model):
+    """
+    Model para comentários feitos por qualquer visitante sobre um lugar específico.
+    """
+    lugar = models.ForeignKey(Lugar, on_delete=models.CASCADE, related_name='comentarios')
+    texto = models.TextField()
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Comentário em {self.lugar.nome} em {self.data_criacao}"
