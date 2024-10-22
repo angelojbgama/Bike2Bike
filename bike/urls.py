@@ -8,7 +8,8 @@ from .views import (
     ComentarioCreateView, 
     ComentarioUpdateView, 
     ComentarioDeleteView, 
-    ComentarioLugarListView
+    ComentarioLugarListView,
+    ComentarioUpdateEstrelasView
 )
 
 urlpatterns = [
@@ -21,6 +22,9 @@ urlpatterns = [
     path('lugares/<int:lugar_id>/comentarios/novo/', ComentarioCreateView.as_view(), name='comentario_create'),
     path('comentarios/<int:pk>/editar/', ComentarioUpdateView.as_view(), name='comentario_update'),
     path('comentarios/<int:pk>/deletar/', ComentarioDeleteView.as_view(), name='comentario_delete'),
+
+
+    path('comentario/<int:pk>/alterar-estrelas/', ComentarioUpdateEstrelasView.as_view(), name='comentario_update_estrelas'),
 
     path('get-cities/', get_cities_by_country, name='get_cities_by_country'),
 ]

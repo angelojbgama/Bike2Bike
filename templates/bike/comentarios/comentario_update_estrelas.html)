@@ -1,0 +1,12 @@
+<h1>Alterar Avaliação</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    
+    <div>
+        <label for="id_estrelas">Avaliação (1 a 5 estrelas):</label>
+        {{ form.estrelas }}
+    </div>
+
+    <button type="submit">Salvar</button>
+</form>

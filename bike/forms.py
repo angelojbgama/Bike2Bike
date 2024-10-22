@@ -266,14 +266,32 @@ class LugarForm(forms.ModelForm):
             'tipo': forms.Select(attrs={'class': 'form-select'}),
         }
 
-
 class ComentarioForm(forms.ModelForm):
     """
-    Formulário para adicionar um comentário sobre um lugar específico.
+    Formulário para adicionar um comentário sobre um lugar específico com avaliação em estrelas.
     """
     class Meta:
         model = Comentario
-        fields = ['texto']
+        fields = ['texto', 'estrelas']
         widgets = {
-            'texto': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Escreva seu comentário aqui...'}),
+            'texto': forms.Textarea(attrs={
+                'rows': 3, 
+                'placeholder': 'Escreva seu comentário aqui...'
+            }),
+            'estrelas': forms.NumberInput(attrs={
+                'min': 0, 'max': 5, 'step': 1, 
+                'placeholder': 'Avaliação (0 a 5 estrelas)'
+            }),
+        }
+
+class EstrelaForm(forms.ModelForm):
+    class Meta:
+        model = Comentario
+        fields = ['estrelas']
+        widgets = {
+            'estrelas': forms.NumberInput(attrs={
+                'min': 0, 'max': 5, 'step': 1, 
+                'class': 'form-control',
+                'style': 'width: 80px; display: inline-block;',
+            }),
         }

@@ -2,7 +2,7 @@
 {% block title %}Serviços em {{ city }}, {{ country }}{% endblock %}
 {% block content %}
 
-<div class="container mt-5 py-4"> <!-- Ajuste para padding superior e inferior -->
+<div class="container mt-5 py-4">
   <div class="row justify-content-center">
     <div class="col-md-12">
       {% if bikes_data %}
@@ -25,11 +25,10 @@
       <div class="text-center mt-4">
         <a href="{% url 'cadastrar_lugar' %}" class="btn btn-secondary">Cadastrar local</a>
       </div>
-      
+
       <div class="text-center mt-4">
         <a href="{% url 'check_bike_service' %}" class="btn btn-secondary">Nova busca</a>
-      </div>  
-    
+      </div>
     </div>
   </div>
 </div>
@@ -54,14 +53,14 @@
               <strong>${lugar.nome}</strong><br>
               <em>${lugar.descricao}</em><br>
               Tipo: ${lugar.tipo}<br>
+              <strong>Média das Estrelas:</strong> ${lugar.media_estrelas} ⭐<br>
               <a href="${lugar.comentarios_url}" target="_blank">Ver Comentários</a>
           `;
-      
+
           L.marker([lugar.latitude, lugar.longitude])
               .addTo(map)
               .bindPopup(popupContent);
       });
-      
 
       // Adiciona marcadores para cada estação
       {% for bike in bikes_data %}
@@ -87,8 +86,7 @@
 
                   // Adiciona um marcador na posição do usuário
                   L.marker([lat, lon]).addTo(map)
-                      .bindPopup('Você está aqui!')
-                      .openPopup();
+                      .bindPopup('Você está aqui!').openPopup();
 
                   // Centraliza o mapa na posição do usuário
                   map.setView([lat, lon], 15);

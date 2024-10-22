@@ -97,6 +97,7 @@ class ResultadosBuscaView(TemplateView):
                 "latitude": lugar.latitude,
                 "longitude": lugar.longitude,
                 "tipo": lugar.get_tipo_display(),
+                "media_estrelas": lugar.media_estrelas(),  # Adiciona a média das estrelas
                 "comentarios_url": reverse("comentario_lugar_list", args=[lugar.id]),
             }
             for lugar in lugares
@@ -126,9 +127,6 @@ class SobreServicoView(TemplateView):
 
 
 class ComentarioLugarListView(ListView):
-    """
-    Exibe a lista de comentários de um lugar.
-    """
     model = Comentario
     template_name = "bike/comentarios/comentario_lugar_list.html"
     context_object_name = "comentarios"
@@ -139,7 +137,10 @@ class ComentarioLugarListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["lugar_id"] = self.kwargs.get("lugar_id")
+        lugar = Lugar.objects.get(id=self.kwargs.get("lugar_id"))
+        context["lugar"] = lugar
+        context["media_estrelas"] = lugar.media_estrelas()
+        context["soma_estrelas"] = lugar.soma_estrelas()  # Soma total das estrelas
         return context
 
 
@@ -165,23 +166,16 @@ class ComentarioCreateView(CreateView):
         lugar_id = self.kwargs["lugar_id"]
         return reverse_lazy("comentario_lugar_list", kwargs={"lugar_id": lugar_id})
 
+from django.shortcuts import get_object_or_404, redirect
 
 class ComentarioUpdateView(UpdateView):
-    """
-    Atualiza um comentário existente.
-    """
     model = Comentario
-    fields = ["texto"]
+    fields = ["estrelas"]  # Atualizamos apenas as estrelas
     template_name = "bike/comentarios/comentario_form.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["lugar_id"] = self.object.lugar_id
-        return context
-
-    def get_success_url(self):
-        return reverse_lazy("comentario_lugar_list", kwargs={"lugar_id": self.object.lugar_id})
-
+    def form_valid(self, form):
+        form.save()
+        return redirect(reverse_lazy('comentario_lugar_list', kwargs={'lugar_id': self.object.lugar_id}))
 
 class ComentarioDeleteView(DeleteView):
     model = Comentario
@@ -191,6 +185,15 @@ class ComentarioDeleteView(DeleteView):
         context = super().get_context_data(**kwargs)
         context['lugar_id'] = self.object.lugar_id  # Certifique-se de que lugar_id está disponível
         return context
+
+    def get_success_url(self):
+        return reverse_lazy("comentario_lugar_list", kwargs={"lugar_id": self.object.lugar_id})
+
+
+class ComentarioUpdateEstrelasView(UpdateView):
+    model = Comentario
+    fields = ["estrelas"]
+    template_name = "bike/comentarios/comentario_update_estrelas.html"
 
     def get_success_url(self):
         return reverse_lazy("comentario_lugar_list", kwargs={"lugar_id": self.object.lugar_id})

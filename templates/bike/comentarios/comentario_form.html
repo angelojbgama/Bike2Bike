@@ -1,32 +1,29 @@
 {% extends 'base.html' %}
 
-{% block title %}Novo Comentário{% endblock %}
+{% block title %}Atualizar Comentário{% endblock %}
 
 {% block content %}
 <div class="container mt-5 py-4">
   <div class="row justify-content-center">
     <div class="col-md-6">
-      <div class="card shadow-lg">
-        <div class="card-body p-5">
-          <h2 class="text-center mb-4">Novo Comentário</h2>
+      <h1 class="mb-4 text-center">Atualizar Comentário</h1>
 
-          <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
+      <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
 
-            <div class="d-grid mt-3">
-              <button type="submit" class="btn btn-primary">Enviar</button>
-            </div>
-          </form>
-
-          <div class="text-center mt-3">
-            {% if lugar_id %}
-              <a href="{% url 'comentario_create' lugar_id=lugar_id %}" class="btn btn-primary">Adicionar Comentário</a>
-            {% endif %}
-          </div>
-          
+        <div class="mb-3">
+          <label for="id_texto" class="form-label">Texto do Comentário:</label>
+          {{ form.texto }}
         </div>
-      </div>
+
+        <div class="mb-3">
+          <label for="id_estrelas" class="form-label">Avaliação (0 a 5 estrelas):</label>
+          {{ form.estrelas }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </form>
     </div>
   </div>
 </div>
