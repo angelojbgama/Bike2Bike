@@ -1,7 +1,7 @@
 from django.urls import reverse_lazy, reverse
 from django.views.generic import TemplateView, CreateView, ListView, UpdateView, DeleteView, FormView
 from django.http import JsonResponse, HttpResponseRedirect
-from .models import Lugar, Comentario
+from .models import Lugar, Comentario, AvaliacaoComentario
 from .forms import BikeSearchForm
 import requests
 from django.views.decorators.http import require_POST
@@ -14,25 +14,30 @@ from django.db.models import Avg, Sum
 @csrf_exempt
 @require_POST
 def salvar_avaliacao(request, comentario_id):
+    """
+    Adiciona uma nova avaliação a um comentário existente e retorna a soma e média das avaliações.
+    """
     try:
         estrelas = int(request.POST.get('estrelas'))
-        comentario = Comentario.objects.get(pk=comentario_id)
-        comentario.estrelas = estrelas
-        comentario.save()
+        comentario = get_object_or_404(Comentario, pk=comentario_id)
 
-        # Recalcular média e soma
-        comentarios = Comentario.objects.all()
-        media_estrelas = comentarios.aggregate(Avg('estrelas'))['estrelas__avg']
-        soma_estrelas = comentarios.aggregate(Sum('estrelas'))['estrelas__sum']
+        # Cria uma nova avaliação para o comentário
+        AvaliacaoComentario.objects.create(comentario=comentario, estrelas=estrelas)
+
+        # Recalcular média e soma das avaliações do comentário
+        avaliacoes = comentario.avaliacoes.all()
+        media_estrelas = avaliacoes.aggregate(Avg('estrelas'))['estrelas__avg']
+        soma_estrelas = avaliacoes.aggregate(Sum('estrelas'))['estrelas__sum']
 
         return JsonResponse({
             'status': 'success',
             'estrelas': estrelas,
-            'media_estrelas': media_estrelas,
-            'soma_estrelas': soma_estrelas
+            'media_estrelas': round(media_estrelas, 2) if media_estrelas else 0,
+            'soma_estrelas': soma_estrelas or 0
         })
-    except (Comentario.DoesNotExist, ValueError):
-        return JsonResponse({'status': 'error'}, status=400)
+
+    except ValueError:
+        return JsonResponse({'status': 'error', 'message': 'Valor inválido'}, status=400)
 
 
 
@@ -170,8 +175,15 @@ class ComentarioLugarListView(ListView):
         lugar = Lugar.objects.get(id=self.kwargs.get("lugar_id"))
         context["lugar"] = lugar
         context["media_estrelas"] = lugar.media_estrelas()
-        context["soma_estrelas"] = lugar.soma_estrelas()  # Soma total das estrelas
+        context["soma_estrelas"] = lugar.soma_estrelas()
+
+        # Adiciona a soma e média de avaliações para cada comentário
+        for comentario in context["comentarios"]:
+            comentario.soma_estrelas = comentario.avaliacoes.aggregate(Sum('estrelas'))['estrelas__sum'] or 0
+            comentario.media_estrelas = comentario.avaliacoes.aggregate(Avg('estrelas'))['estrelas__avg'] or 0
+
         return context
+
 
 
 class ComentarioCreateView(CreateView):

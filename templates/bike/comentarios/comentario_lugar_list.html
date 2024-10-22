@@ -11,7 +11,8 @@
 
       <p class="text-center">
         <strong>Média das Estrelas:</strong> <span id="media-estrelas">{{ media_estrelas }}</span> ⭐<br>
-        <strong>Soma Total das Estrelas:</strong> <span id="soma-estrelas">{{ soma_estrelas }}</span> ⭐
+        <strong>Soma Total das Estrelas:</strong> <span id="soma-estrelas">{{ soma_estrelas }}</span> ⭐<br>
+        <strong>Total de Avaliações:</strong> <span id="total-avaliacoes">{{ comentarios|length }}</span>
       </p>
 
       {% if comentarios %}
@@ -19,11 +20,17 @@
           {% for comentario in comentarios %}
             <li class="list-group-item d-flex flex-column" id="comentario-{{ comentario.pk }}">
               <div class="mb-2">
-                <strong>{{ comentario.texto }}</strong>
+                <strong>Avaliação {{ forloop.counter }} de {{ comentarios|length }}:</strong><br>
+                {{ comentario.texto }}
+                <p>
+                  <strong>Total de Avaliações:</strong> {{ comentario.avaliacoes.count }}<br>
+                  <strong>Soma das Estrelas:</strong> {{ comentario.soma_estrelas }} ⭐<br>
+                  <strong>Média das Estrelas:</strong> {{ comentario.media_estrelas|floatformat:2 }} ⭐
+                </p>
               </div>
 
               <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">Criado em: {{ comentario.data_criacao }}</small>
+                <small class="text-muted">Criado em: {{ comentario.data_criacao|date:"d/m/Y" }}</small>
 
                 <div class="star-rating-container">
                   <div class="star-rating" data-comentario-id="{{ comentario.pk }}" data-initial-rating="{{ comentario.estrelas }}">
@@ -144,21 +151,21 @@ document.addEventListener('DOMContentLoaded', function() {
 <style>
 /* Ajuste do tamanho das estrelas */
 .star-rating {
-    font-size: 1.5em; /* Reduzindo o tamanho das estrelas */
+    font-size: 1.5em;
     cursor: pointer;
     display: flex;
     gap: 3px;
 }
 
-/* Container das estrelas para posicionamento */
+/* Container das estrelas */
 .star-rating-container {
     display: flex;
     justify-content: flex-start;
-    align-items: flex-end; /* Alinhar ao final inferior */
+    align-items: flex-end;
     flex-grow: 1;
 }
 
-/* Estilo individual das estrelas */
+/* Estilo das estrelas */
 .star {
     color: gray;
     transition: color 0.2s;
