@@ -11,11 +11,13 @@ urlpatterns = [
     path('sobre/', SobreServicoView.as_view(), name='sobre_servico'),
     
     
-    path('comentarios/', ComentarioListView.as_view(), name='comentario_list'),
-    path('comentarios/novo/', ComentarioCreateView.as_view(), name='comentario_create'),
+    path('lugares/<int:lugar_id>/comentarios/', ComentarioLugarListView.as_view(), name='comentario_lugar_list'),
     path('comentarios/<int:pk>/editar/', ComentarioUpdateView.as_view(), name='comentario_update'),
+    path('lugares/<int:lugar_id>/comentarios/novo/', ComentarioCreateView.as_view(), name='comentario_create'),
+    
+    
+    path('comentarios/', ComentarioListView.as_view(), name='comentario_list'),
     path('comentarios/<int:pk>/deletar/', ComentarioDeleteView.as_view(), name='comentario_delete'),
-    path('lugares/<int:lugar_id>/comentarios/', ComentarioLugarListView.as_view(), name='comentario_list_lugar'),
 
     
     path('get-cities/', get_cities_by_country, name='get_cities_by_country'),

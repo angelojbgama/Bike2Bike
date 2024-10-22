@@ -1,12 +1,44 @@
-<h1>Lista de Comentários</h1>
-<a href="{% url 'comentario_create' %}">Adicionar Comentário</a>
+{% extends 'base.html' %}
 
-<ul>
-    {% for comentario in comentarios %}
-        <li>
-            {{ comentario.texto }} - {{ comentario.data_criacao }}
-            <a href="{% url 'comentario_update' comentario.pk %}">Editar</a>
-            <a href="{% url 'comentario_delete' comentario.pk %}">Deletar</a>
-        </li>
-    {% endfor %}
-</ul>
+{% block title %}Lista de Comentários{% endblock %}
+
+{% block content %}
+<div class="container mt-5 py-4"> <!-- Ajuste para padding superior e inferior -->
+  <div class="row justify-content-center">
+    <div class="col-md-8"> <!-- Ajuste para centralizar o conteúdo -->
+      <h1 class="mb-4 text-center">Lista de Comentários</h1>
+
+      <!-- Link para Adicionar Comentário -->
+      <div class="text-center mb-3">
+      </div>
+    
+
+      {% if comentarios %}
+        <ul class="list-group">
+          {% for comentario in comentarios %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ comentario.texto }}</strong><br>
+                <small class="text-muted">Criado em: {{ comentario.data_criacao }}</small>
+              </div>
+              <div>
+                <a href="{% url 'comentario_update' comentario.pk %}" class="btn btn-sm btn-warning me-2">Editar</a>
+                <a href="{% url 'comentario_delete' comentario.pk %}" class="btn btn-sm btn-danger">Deletar</a>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="alert alert-warning text-center mt-3">Nenhum comentário encontrado.</p>
+      {% endif %}
+
+      <!-- Link para Nova Busca -->
+      <div class="text-center mt-4">
+        <a href="{% url 'check_bike_service' %}" class="btn btn-secondary">Nova busca</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

@@ -1,29 +1,33 @@
-{% extends 'base.html' %} 
-{% block title %}Cadastre um Lugar{% endblock %}
+{% extends 'base.html' %}
+
+{% block title %}Novo Comentário{% endblock %}
 
 {% block content %}
-
-<div class="container mt-5 py-4"> <!-- Ajuste para padding superior e inferior -->
+<div class="container mt-5 py-4">
   <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-md-6">
       <div class="card shadow-lg">
         <div class="card-body p-5">
-          <h2 class="text-center mb-4">Cadastre um Novo Lugar</h2>
-          <h1>{% if object.pk %}Editar Comentário{% else %}Novo Comentário{% endif %}</h1>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit">Salvar</button>
-                </form>
-                <a href="{% url 'comentario_list' %}">Cancelar</a>
+          <h2 class="text-center mb-4">Novo Comentário</h2>
+
+          <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+
             <div class="d-grid mt-3">
-              <button type="submit" class="btn btn-primary">Cadastrar</button>
+              <button type="submit" class="btn btn-primary">Enviar</button>
             </div>
           </form>
+
+          <div class="text-center mt-3">
+            {% if lugar_id %}
+              <a href="{% url 'comentario_create' lugar_id=lugar_id %}" class="btn btn-primary">Adicionar Comentário</a>
+            {% endif %}
+          </div>
+          
         </div>
       </div>
     </div>
   </div>
 </div>
-
 {% endblock %}
