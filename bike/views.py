@@ -4,6 +4,36 @@ from django.http import JsonResponse, HttpResponseRedirect
 from .models import Lugar, Comentario
 from .forms import BikeSearchForm
 import requests
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt  # Para desabilitar CSRF se necessário
+from django.db.models import Avg, Sum
+
+
+
+
+@csrf_exempt
+@require_POST
+def salvar_avaliacao(request, comentario_id):
+    try:
+        estrelas = int(request.POST.get('estrelas'))
+        comentario = Comentario.objects.get(pk=comentario_id)
+        comentario.estrelas = estrelas
+        comentario.save()
+
+        # Recalcular média e soma
+        comentarios = Comentario.objects.all()
+        media_estrelas = comentarios.aggregate(Avg('estrelas'))['estrelas__avg']
+        soma_estrelas = comentarios.aggregate(Sum('estrelas'))['estrelas__sum']
+
+        return JsonResponse({
+            'status': 'success',
+            'estrelas': estrelas,
+            'media_estrelas': media_estrelas,
+            'soma_estrelas': soma_estrelas
+        })
+    except (Comentario.DoesNotExist, ValueError):
+        return JsonResponse({'status': 'error'}, status=400)
+
 
 
 def get_cities_by_country(request):

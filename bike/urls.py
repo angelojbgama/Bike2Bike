@@ -3,6 +3,7 @@ from .views import (
     BikeServiceView, 
     ResultadosBuscaView, 
     get_cities_by_country, 
+    salvar_avaliacao,
     LugarCreateView, 
     SobreServicoView,
     ComentarioCreateView, 
@@ -25,6 +26,9 @@ urlpatterns = [
 
 
     path('comentario/<int:pk>/alterar-estrelas/', ComentarioUpdateEstrelasView.as_view(), name='comentario_update_estrelas'),
+
+
+    path('comentarios/<int:comentario_id>/avaliacao/', salvar_avaliacao, name='salvar_avaliacao'),
 
     path('get-cities/', get_cities_by_country, name='get_cities_by_country'),
 ]
