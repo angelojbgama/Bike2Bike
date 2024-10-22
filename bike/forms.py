@@ -1,7 +1,5 @@
 from django import forms
-
 from .models import Lugar, Comentario
-
 import requests
 
 # Dicionário para mapear códigos de países para seus nomes em português
@@ -216,31 +214,31 @@ def get_available_cities():
     response = requests.get(url)
     if response.status_code == 200:
         networks = response.json().get('networks', [])
-        # Extraímos a lista de cidades únicas
         cities = set(network['location']['city'] for network in networks if 'city' in network['location'])
         return [(city, city) for city in sorted(cities)]
     return []
+
 
 def get_available_countries():
     url = "http://api.citybik.es/v2/networks"
     response = requests.get(url)
     if response.status_code == 200:
         networks = response.json().get('networks', [])
-        # Extraímos a lista de países únicos e convertemos o código para o nome
         countries = set(network['location']['country'] for network in networks if 'country' in network['location'])
         country_choices = []
         for country in sorted(countries):
-            country_name = COUNTRY_NAME_MAPPING.get(country, country)  # Usa o nome mapeado ou o código se não estiver mapeado
+            country_name = COUNTRY_NAME_MAPPING.get(country, country)
             country_choices.append((country, country_name))
         return country_choices
     return []
+
 
 class BikeSearchForm(forms.Form):
     city = forms.ChoiceField(
         label='Cidade',
         choices=[],
         widget=forms.Select(attrs={
-            'class': 'form-select mb-3',  # Classe Bootstrap para select estilizado
+            'class': 'form-select mb-3',
             'id': 'id_city'
         })
     )
@@ -248,18 +246,15 @@ class BikeSearchForm(forms.Form):
         label='País',
         choices=[],
         widget=forms.Select(attrs={
-            'class': 'form-select mb-3',  # Classe Bootstrap para select estilizado
+            'class': 'form-select mb-3',
             'id': 'id_country'
         })
     )
 
     def __init__(self, *args, **kwargs):
         super(BikeSearchForm, self).__init__(*args, **kwargs)
-        # Preenche as listas de cidades e países dinamicamente
         self.fields['city'].choices = get_available_cities()
         self.fields['country'].choices = get_available_countries()
-        
-############################################################################
 
 
 class LugarForm(forms.ModelForm):
@@ -271,10 +266,6 @@ class LugarForm(forms.ModelForm):
             'tipo': forms.Select(attrs={'class': 'form-select'}),
         }
 
-from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import TemplateView, FormView
-from django.http import HttpResponseRedirect
-from django.urls import reverse_lazy, reverse, path
 
 class ComentarioForm(forms.ModelForm):
     """
@@ -286,4 +277,3 @@ class ComentarioForm(forms.ModelForm):
         widgets = {
             'texto': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Escreva seu comentário aqui...'}),
         }
-

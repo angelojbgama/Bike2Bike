@@ -21,7 +21,7 @@ class Lugar(models.Model):
     # Utilizamos choices para limitar os tipos de lugar às opções da constante
     tipo = models.CharField(
         max_length=50,
-        choices=[(key, value) for key, value in TIPOS_DE_LUGARES.items()],
+        choices=TIPOS_DE_LUGARES.items(),
         default='parque'
     )
 
