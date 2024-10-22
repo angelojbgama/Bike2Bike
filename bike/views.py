@@ -1,12 +1,9 @@
-from .models import Lugar
-from .forms import BikeSearchForm
 from django.urls import reverse_lazy, reverse
-from django.views.generic.edit import FormView
-from django.views.generic import TemplateView, CreateView
+from django.views.generic import TemplateView, CreateView, ListView, UpdateView, DeleteView, FormView
 from django.http import JsonResponse, HttpResponseRedirect
+from .models import Lugar, Comentario
+from .forms import BikeSearchForm
 import requests
-from .models import Comentario
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
 
 def get_cities_by_country(request):
@@ -51,8 +48,6 @@ class BikeServiceView(FormView):
             )
         )
 
-
-from django.urls import reverse
 
 class ResultadosBuscaView(TemplateView):
     """
@@ -102,7 +97,7 @@ class ResultadosBuscaView(TemplateView):
                 "latitude": lugar.latitude,
                 "longitude": lugar.longitude,
                 "tipo": lugar.get_tipo_display(),
-                "comentarios_url": reverse('comentario_lugar_list', args=[lugar.id])
+                "comentarios_url": reverse("comentario_lugar_list", args=[lugar.id]),
             }
             for lugar in lugares
         ]
@@ -130,71 +125,72 @@ class SobreServicoView(TemplateView):
     template_name = "bike/home.html"
 
 
-
-
-
 class ComentarioLugarListView(ListView):
+    """
+    Exibe a lista de comentários de um lugar.
+    """
     model = Comentario
-    template_name = 'bike/comentarios/comentario_lugar_list.html'
-    context_object_name = 'comentarios'
+    template_name = "bike/comentarios/comentario_lugar_list.html"
+    context_object_name = "comentarios"
 
     def get_queryset(self):
-        lugar_id = self.kwargs.get('lugar_id')
+        lugar_id = self.kwargs.get("lugar_id")
         return Comentario.objects.filter(lugar_id=lugar_id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['lugar_id'] = self.kwargs.get('lugar_id')
+        context["lugar_id"] = self.kwargs.get("lugar_id")
         return context
 
 
 class ComentarioCreateView(CreateView):
+    """
+    Cria um novo comentário para um lugar.
+    """
     model = Comentario
-    fields = ['texto']
-    template_name = 'bike/comentarios/comentario_form.html'
+    fields = ["texto"]
+    template_name = "bike/comentarios/comentario_form.html"
 
     def form_valid(self, form):
-        lugar_id = self.kwargs['lugar_id']
+        lugar_id = self.kwargs["lugar_id"]
         form.instance.lugar_id = lugar_id
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['lugar_id'] = self.kwargs['lugar_id']
+        context["lugar_id"] = self.kwargs["lugar_id"]
         return context
 
     def get_success_url(self):
-        lugar_id = self.kwargs['lugar_id']
-        return reverse_lazy('comentario_lugar_list', kwargs={'lugar_id': lugar_id})
-
-class ComentarioListView(ListView):
-    model = Comentario
-    template_name = 'bike/comentarios/comentario_list.html'
-    context_object_name = 'comentarios'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        lugar_id = self.kwargs.get('lugar_id')  # Obtém o lugar_id da URL
-        context['lugar_id'] = lugar_id  # Adiciona ao contexto
-        return context
-
+        lugar_id = self.kwargs["lugar_id"]
+        return reverse_lazy("comentario_lugar_list", kwargs={"lugar_id": lugar_id})
 
 
 class ComentarioUpdateView(UpdateView):
+    """
+    Atualiza um comentário existente.
+    """
     model = Comentario
-    fields = ['texto']
-    template_name = 'bike/comentarios/comentario_form.html'
+    fields = ["texto"]
+    template_name = "bike/comentarios/comentario_form.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        lugar_id = self.object.lugar_id  # Assumindo que Comentario tem um campo lugar_id
-        context['lugar_id'] = lugar_id  # Adiciona o lugar_id ao contexto
+        context["lugar_id"] = self.object.lugar_id
         return context
 
     def get_success_url(self):
-        return reverse_lazy('comentario_lugar_list', kwargs={'lugar_id': self.object.lugar_id})
+        return reverse_lazy("comentario_lugar_list", kwargs={"lugar_id": self.object.lugar_id})
+
 
 class ComentarioDeleteView(DeleteView):
     model = Comentario
-    template_name = 'bike/comentarios/comentario_confirm_delete.html'
-    success_url = reverse_lazy('comentario_list')
+    template_name = "bike/comentarios/comentario_confirm_delete.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['lugar_id'] = self.object.lugar_id  # Certifique-se de que lugar_id está disponível
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy("comentario_lugar_list", kwargs={"lugar_id": self.object.lugar_id})
