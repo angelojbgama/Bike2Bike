@@ -28,7 +28,7 @@
 
 Sinta-se à vontade para contribuir com o **Bike2Bike**! Você pode:
 
-- 🐛 Reportar bugs e sugerir melhorias via [Issues](https://github.com/SEU_USUARIO/bike2bike/issues).
+- 🐛 Reportar bugs e sugerir melhorias via [Issues](https://github.com/angelojbgama/Bike2Bike/issues).
 - 🔧 Abrir Pull Requests para novas funcionalidades ou correções.
 
 ---
