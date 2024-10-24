@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}Calcular Rota - Tem Bike{% endblock %}
+{% block content %}
+
+<div class="container mt-5 py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-12">
+      <h2 class="mb-3 text-center">Calcular Rota</h2>
+
+      <!-- Formulário para definir pontos de partida e destino -->
+      <div class="row mb-3">
+        <div class="col-md-5">
+          <input type="text" id="startLocation" class="form-control" placeholder="Local de partida (latitude, longitude)" readonly />
+        </div>
+        <div class="col-md-5">
+          <input type="text" id="endLocation" class="form-control" placeholder="Local de destino (latitude, longitude)" readonly />
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-primary w-100" id="calculateRoute">Calcular Rota</button>
+        </div>
+      </div>
+
+      <!-- Mapa Leaflet -->
+      <div id="map" class="my-3" style="height: 500px;"></div>
+
+      <!-- Botão para capturar localização atual -->
+      <div class="text-center mt-4">
+        <button class="btn btn-primary" id="getLocationButton">Minha Localização</button>
+      </div>
+
+      <!-- Detalhes do Percurso -->
+      <div class="mt-5" id="routeDetails" style="display: none;">
+        <h4>Detalhes do Percurso</h4>
+        <p><strong>Distância:</strong> <span id="routeDistance">N/A</span></p>
+        <p><strong>Tempo Estimado:</strong> <span id="routeTime">N/A</span></p>
+        <h5>Instruções:</h5>
+        <ul id="routeInstructions"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Leaflet JS e CSS -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+<!-- Script para gerenciar o mapa e a rota -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+      var map = L.map('map').setView([-23.55052, -46.6333], 13);  // Exemplo: São Paulo, Brasil
+
+      // Adiciona camada do mapa
+      L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors',
+          maxZoom: 18
+      }).addTo(map);
+
+      var control = L.Routing.control({
+          waypoints: [],
+          routeWhileDragging: true,
+          show: false  // Oculta o painel de rotas padrão
+      }).addTo(map);
+
+      let startPoint = null;
+      let endPoint = null;
+
+      // Evento de clique no mapa para definir pontos de partida e destino
+      map.on('click', function (e) {
+          if (!startPoint) {
+              startPoint = e.latlng;
+              document.getElementById('startLocation').value = `${startPoint.lat}, ${startPoint.lng}`;
+              L.marker(startPoint).addTo(map).bindPopup('Local de Partida').openPopup();
+          } else if (!endPoint) {
+              endPoint = e.latlng;
+              document.getElementById('endLocation').value = `${endPoint.lat}, ${endPoint.lng}`;
+              L.marker(endPoint).addTo(map).bindPopup('Local de Destino').openPopup();
+          }
+      });
+
+      // Calcula a rota quando o botão é clicado
+      document.getElementById('calculateRoute').addEventListener('click', function () {
+          if (startPoint && endPoint) {
+              control.setWaypoints([startPoint, endPoint]);
+
+              // Exibe detalhes do percurso
+              control.on('routesfound', function (e) {
+                  var route = e.routes[0];
+                  var distance = (route.summary.totalDistance / 1000).toFixed(2) + ' km';
+                  var time = Math.round(route.summary.totalTime / 60) + ' minutos';
+                  var instructions = route.instructions;
+
+                  // Exibir distância e tempo
+                  document.getElementById('routeDistance').textContent = distance;
+                  document.getElementById('routeTime').textContent = time;
+
+                  // Exibir instruções passo a passo
+                  var instructionsList = document.getElementById('routeInstructions');
+                  instructionsList.innerHTML = '';  // Limpar lista anterior
+                  route.instructions.forEach(function (instr) {
+                      var listItem = document.createElement('li');
+                      listItem.textContent = instr.text;
+                      instructionsList.appendChild(listItem);
+                  });
+
+                  document.getElementById('routeDetails').style.display = 'block';
+              });
+          } else {
+              alert('Por favor, selecione ambos os pontos no mapa.');
+          }
+      });
+
+      // Captura a localização atual do usuário
+      document.getElementById('getLocationButton').addEventListener('click', function () {
+          if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(function (position) {
+                  var lat = position.coords.latitude;
+                  var lon = position.coords.longitude;
+                  L.marker([lat, lon]).addTo(map).bindPopup('Você está aqui!').openPopup();
+                  map.setView([lat, lon], 15);
+              }, function () {
+                  alert('Não foi possível obter sua localização.');
+              });
+          } else {
+              alert('Geolocalização não é suportada pelo seu navegador.');
+          }
+      });
+  });
+</script>
+
+{% endblock %}

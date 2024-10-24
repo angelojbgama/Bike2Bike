@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>{% block title %}Tem Bike?{% endblock %}</title>
+    <title>{% block title %}Bike2Bike{% endblock %}</title>
 
 
     <!-- jQuery -->
@@ -30,7 +30,7 @@
         <div class="container">
             <a class="navbar-brand" href="{% url 'sobre_servico' %}">
                 <img src="https://img.icons8.com/ios-filled/50/ffffff/bicycle.png" width="30" height="30" alt="Bike Icon">
-                Tem Bike?
+                Bike2Bike
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -43,6 +43,10 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'cadastrar_lugar' %}">Cadastrar Lugar</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'rota_calculo' %}">Calculo de Rota</a>
+                    </li>
+
                 </ul>
             </div>
         </div>
@@ -55,9 +59,9 @@
 
     <!-- Footer sempre na base da página -->
     <footer class="container-fluid bg-dark text-white text-center p-3">
-        <p class="mb-0">© 2024 Tem Bike? - Todos os direitos reservados.</p>
+        <p class="mb-0">© 2024 Bike2Bike - Todos os direitos reservados.</p>
         <p class="mb-0">
-            <a href="https://github.com/angelojbgama/TemBike" target="_blank" class="footer-link">Acesse nosso GitHub</a>
+            <a href="https://github.com/angelojbgama/Bike2Bike" target="_blank" class="footer-link">Acesse nosso GitHub</a>
         </p>
     </footer>
 

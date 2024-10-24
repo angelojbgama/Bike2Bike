@@ -165,3 +165,17 @@ class SobreServicoView(TemplateView):
         )
         context["email_contato"] = "contato@bikeservice.com"
         return context
+
+
+class RotaView(TemplateView):
+    """
+    View para exibir o mapa e calcular rotas entre dois pontos.
+    """
+    template_name = "bike/rota.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Exemplos de coordenadas iniciais (opcional)
+        context["start_lat"] = -23.55052  # São Paulo (Latitude)
+        context["start_lon"] = -46.6333  # São Paulo (Longitude)
+        return context

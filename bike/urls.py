@@ -9,6 +9,7 @@ from .views import (
     ComentarioUpdateView,
     ComentarioDeleteView,
     ComentarioLugarListView,
+    RotaView,
 )
 
 urlpatterns = [
@@ -16,6 +17,10 @@ urlpatterns = [
     path('resultados/<str:city>/<str:country>/', ResultadosBuscaView.as_view(), name='resultados_busca'),
     path('cadastrar/', LugarCreateView.as_view(), name='cadastrar_lugar'),
     path('sobre/', SobreServicoView.as_view(), name='sobre_servico'),
+
+
+
+    path('rota/', RotaView.as_view(), name='rota_calculo'),  # Nova URL para a rota
 
     path('lugares/<int:lugar_id>/comentarios/', ComentarioLugarListView.as_view(), name='comentario_lugar_list'),
     path('lugares/<int:lugar_id>/comentarios/novo/', ComentarioCreateView.as_view(), name='comentario_create'),
