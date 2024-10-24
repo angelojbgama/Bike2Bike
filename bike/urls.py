@@ -1,16 +1,14 @@
 from django.urls import path
 from .views import (
-    BikeServiceView, 
-    ResultadosBuscaView, 
-    get_cities_by_country, 
-    salvar_avaliacao,
-    LugarCreateView, 
+    BikeServiceView,
+    ResultadosBuscaView,
+    get_cities_by_country,
+    LugarCreateView,
     SobreServicoView,
-    ComentarioCreateView, 
-    ComentarioUpdateView, 
-    ComentarioDeleteView, 
+    ComentarioCreateView,
+    ComentarioUpdateView,
+    ComentarioDeleteView,
     ComentarioLugarListView,
-    ComentarioUpdateEstrelasView
 )
 
 urlpatterns = [
@@ -23,12 +21,6 @@ urlpatterns = [
     path('lugares/<int:lugar_id>/comentarios/novo/', ComentarioCreateView.as_view(), name='comentario_create'),
     path('comentarios/<int:pk>/editar/', ComentarioUpdateView.as_view(), name='comentario_update'),
     path('comentarios/<int:pk>/deletar/', ComentarioDeleteView.as_view(), name='comentario_delete'),
-
-
-    path('comentario/<int:pk>/alterar-estrelas/', ComentarioUpdateEstrelasView.as_view(), name='comentario_update_estrelas'),
-
-
-    path('comentarios/<int:comentario_id>/avaliacao/', salvar_avaliacao, name='salvar_avaliacao'),
 
     path('get-cities/', get_cities_by_country, name='get_cities_by_country'),
 ]

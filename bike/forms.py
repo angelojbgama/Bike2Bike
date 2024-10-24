@@ -218,7 +218,6 @@ def get_available_cities():
         return [(city, city) for city in sorted(cities)]
     return []
 
-
 def get_available_countries():
     url = "http://api.citybik.es/v2/networks"
     response = requests.get(url)
@@ -231,7 +230,6 @@ def get_available_countries():
             country_choices.append((country, country_name))
         return country_choices
     return []
-
 
 class BikeSearchForm(forms.Form):
     city = forms.ChoiceField(
@@ -256,7 +254,6 @@ class BikeSearchForm(forms.Form):
         self.fields['city'].choices = get_available_cities()
         self.fields['country'].choices = get_available_countries()
 
-
 class LugarForm(forms.ModelForm):
     class Meta:
         model = Lugar
@@ -268,30 +265,14 @@ class LugarForm(forms.ModelForm):
 
 class ComentarioForm(forms.ModelForm):
     """
-    Formulário para adicionar um comentário sobre um lugar específico com avaliação em estrelas.
+    Formulário para adicionar um comentário sobre um lugar específico.
     """
     class Meta:
         model = Comentario
-        fields = ['texto', 'estrelas']
+        fields = ['texto']
         widgets = {
             'texto': forms.Textarea(attrs={
                 'rows': 3, 
                 'placeholder': 'Escreva seu comentário aqui...'
-            }),
-            'estrelas': forms.NumberInput(attrs={
-                'min': 0, 'max': 5, 'step': 1, 
-                'placeholder': 'Avaliação (0 a 5 estrelas)'
-            }),
-        }
-
-class EstrelaForm(forms.ModelForm):
-    class Meta:
-        model = Comentario
-        fields = ['estrelas']
-        widgets = {
-            'estrelas': forms.NumberInput(attrs={
-                'min': 0, 'max': 5, 'step': 1, 
-                'class': 'form-control',
-                'style': 'width: 80px; display: inline-block;',
             }),
         }

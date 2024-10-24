@@ -1,30 +1,32 @@
 {% extends 'base.html' %}
 
-{% block title %}🚲 Tem Bike - Explore Serviços de Bike Shared e Locais Bike-Friendly pelo Mundo 🌍{% endblock %}
+{% block title %}🚲 Tem Bike - Explore Serviços de Bike Sharing e Locais Bike-Friendly pelo Mundo 🌍{% endblock %}
 
 {% block content %}
 <div class="container mt-5 py-4">
   <div class="row justify-content-center">
     <div class="col-md-10">
-      <div class="card shadow-lg">
+      <div class="card shadow-lg border-0">
         <div class="card-body p-5">
-          <h1 class="text-center mb-4">Tem Bike - Conectando Você ao Mundo das Bikes</h1>
+          <h1 class="text-center mb-4 text-success fw-bold">
+            Tem Bike - Conectando Você ao Mundo das Bikes
+          </h1>
           <p class="lead text-center mb-4">
-            No Tem Bike, você encontra serviços de <strong>bike shared</strong> espalhados por diversas cidades do mundo. 
-            Nosso objetivo é facilitar a mobilidade urbana sustentável, conectando ciclistas com pontos de acesso e estações de bicicletas compartilhadas.
+            No <strong>Tem Bike</strong>, você encontra serviços de <strong>bike sharing</strong> em diversas cidades ao redor do mundo. 
+            Nosso objetivo é promover a <em>mobilidade urbana sustentável</em>, conectando você com estações de bicicletas compartilhadas e locais de acesso fácil.
           </p>
-          <p class="text-center">
-            Além disso, nossa plataforma permite que a comunidade de ciclistas registre e descubra locais <strong>bike-friendly</strong> — 
-            como cafés aconchegantes, oficinas especializadas e estacionamentos seguros —, fomentando uma rede de apoio e incentivo ao uso de bicicletas.
+          <p class="text-center mb-5">
+            Além disso, nossa plataforma permite que você descubra e compartilhe lugares <strong>bike-friendly</strong> — 
+            como cafés acolhedores, lojas especializadas e estacionamentos seguros — fortalecendo uma comunidade engajada e ativa.
           </p>
 
           <div class="text-center mt-5">
-            <h4 class="text-primary">Tem um lugar bike-friendly para recomendar?</h4>
-            <p>
-              Ajudar a comunidade é simples: cadastre lugares que apoiam e incentivam a cultura do ciclismo. 
-              Seja um café acolhedor, uma loja de reparos ou um estacionamento seguro, cada dica faz a diferença.
+            <h4 class="text-primary fw-semibold">Tem um lugar bike-friendly para recomendar?</h4>
+            <p class="mb-4">
+              Ajude a expandir nossa rede! Cadastre lugares que incentivam o uso da bicicleta, como oficinas, cafés ou qualquer ponto que apoie a cultura do ciclismo. 
+              Cada indicação faz a diferença na construção de uma comunidade mais conectada e sustentável.
             </p>
-            <a href="{% url 'cadastrar_lugar' %}" class="btn btn-outline-success btn-lg mt-3">
+            <a href="{% url 'cadastrar_lugar' %}" class="btn btn-outline-success btn-lg">
               Cadastrar Lugar
             </a>
           </div>
