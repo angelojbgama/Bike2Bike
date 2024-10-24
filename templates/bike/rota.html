@@ -4,122 +4,151 @@
 
 <div class="container-fluid mt-5 py-4">
   <div class="row">
-    <!-- Barra lateral com detalhes do percurso -->
-    <div class="col-md-4 p-4 bg-light" id="sidebar">
-      <h3>Detalhes do Percurso</h3>
-      <div id="routeDetails" style="display: none;">
+    <div class="col-md-4 p-4 bg-light shadow-sm rounded" id="sidebar">
+      <h3 class="text-center mb-4 text-primary">Detalhes do Percurso</h3>
+      <div id="routeDetails" class="text-center" style="display: none;">
         <p><strong>Distância:</strong> <span id="routeDistance">N/A</span></p>
-        <p><strong>Tempo Estimado:</strong> <span id="routeTime">N/A</span></p>
-        <h5 class="mt-4">Instruções:</h5>
-        <ul id="instructions" class="list-group"></ul>
+        <a id="googleMapsLink" class="btn btn-success w-100 mt-4" target="_blank" style="display: none;">
+          Abrir no Google Maps
+        </a>
       </div>
       <div class="mt-4">
-        <button class="btn btn-secondary w-100 mb-2" id="resetRouteButton">Redefinir Rota</button>
-        <button class="btn btn-primary w-100" id="getLocationButton">Minha Localização</button>
+        <button class="btn btn-outline-secondary w-100 mb-2" id="resetRouteButton">
+          <i class="bi bi-arrow-counterclockwise"></i> Redefinir Rota
+        </button>
+        <button class="btn btn-outline-primary w-100" id="getLocationButton">
+          <i class="bi bi-geo-alt-fill"></i> Minha Localização
+        </button>
       </div>
     </div>
 
-    <!-- Mapa Leaflet -->
     <div class="col-md-8">
-      <div id="map" style="height: 600px;"></div>
+      <div id="map" class="shadow-sm rounded" style="height: 600px; position: relative;">
+        <div id="loading" class="position-absolute top-50 start-50 translate-middle text-center">
+          <div class="spinner-border text-primary" role="status"></div>
+          <span class="mt-2 d-block">Carregando mapa...</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Leaflet JS e CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+
+<style>
+  #sidebar {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .leaflet-routing-container {
+    display: none;
+  }
+</style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-      var map = L.map('map').setView([-23.55052, -46.6333], 13);  // Exemplo: São Paulo, Brasil
+  document.addEventListener('DOMContentLoaded', () => {
+    const map = initializeMap();
+    let startPoint = null, endPoint = null, routeLayer = null;
 
-      // Adiciona a camada de mapa
+    function initializeMap() {
+      const loading = document.getElementById('loading');
+      setTimeout(() => loading.style.display = 'none', 1000);
+
+      const map = L.map('map', { zoomControl: false }).setView([-23.55052, -46.6333], 13);
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
       L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors',
-          maxZoom: 18
+        attribution: '&copy; OpenStreetMap contributors | &copy; CyclOSM',
+        maxZoom: 18
       }).addTo(map);
+      return map;
+    }
 
-      let startPoint = null;
-      let endPoint = null;
-      let routeLayer = null;  // Variável para armazenar a camada da rota
+    map.on('click', e => addMarker(e.latlng));
 
-      // Evento de clique no mapa para definir pontos de partida e destino
-      map.on('click', function (e) {
-          if (!startPoint) {
-              startPoint = e.latlng;
-              L.marker(startPoint).addTo(map).bindPopup('Local de Partida').openPopup();
-          } else if (!endPoint) {
-              endPoint = e.latlng;
-              L.marker(endPoint).addTo(map).bindPopup('Local de Destino').openPopup();
-              calcularRota();
-          }
-      });
+    function addMarker(latlng) {
+      if (!startPoint) {
+        startPoint = createMarker(latlng, 'Local de Partida');
+      } else if (!endPoint) {
+        endPoint = createMarker(latlng, 'Local de Destino');
+        calculateRoute();
+      }
+    }
 
-      // Função para calcular e exibir a rota
-      function calcularRota() {
-          L.Routing.control({
-              waypoints: [L.latLng(startPoint), L.latLng(endPoint)],
-              createMarker: function() { return null; },  // Remove marcadores automáticos
-              lineOptions: { styles: [{ color: 'blue', weight: 4 }] },
-              show: false,  // Oculta painel padrão
-              router: L.Routing.osrmv1({
-                  serviceUrl: 'https://router.project-osrm.org/route/v1'
-              })
-          }).on('routesfound', function (e) {
-              var route = e.routes[0];
-              var distance = (route.summary.totalDistance / 1000).toFixed(2) + ' km';
-              var time = Math.round(route.summary.totalTime / 60) + ' minutos';
+    function createMarker(latlng, label) {
+      return L.marker(latlng, { draggable: true })
+        .addTo(map)
+        .bindPopup(label)
+        .openPopup();
+    }
 
-              // Exibe as informações na barra lateral
-              document.getElementById('routeDistance').textContent = distance;
-              document.getElementById('routeTime').textContent = time;
-              document.getElementById('routeDetails').style.display = 'block';
-
-              // Adiciona as instruções na lista
-              var instructions = document.getElementById('instructions');
-              instructions.innerHTML = '';  // Limpa instruções anteriores
-              route.instructions.forEach(function (step) {
-                  var li = document.createElement('li');
-                  li.classList.add('list-group-item');
-                  li.textContent = step.text;
-                  instructions.appendChild(li);
-              });
-
-              // Adiciona a rota no mapa
-              if (routeLayer) map.removeLayer(routeLayer);  // Remove rota anterior se existir
-              routeLayer = L.Routing.line(route).addTo(map);
-          }).addTo(map);
+    function calculateRoute() {
+      if (!startPoint || !endPoint) {
+        return alert('Defina os pontos de partida e destino.');
       }
 
-      // Botão para redefinir a rota
-      document.getElementById('resetRouteButton').addEventListener('click', function () {
-          startPoint = null;
-          endPoint = null;
-          if (routeLayer) map.removeLayer(routeLayer);  // Remove a camada da rota
-          map.eachLayer(function (layer) {
-              if (layer instanceof L.Marker) {
-                  map.removeLayer(layer);
-              }
-          });
-          document.getElementById('routeDetails').style.display = 'none';
+      const routingControl = L.Routing.control({
+        waypoints: [startPoint.getLatLng(), endPoint.getLatLng()],
+        createMarker: () => null,
+        lineOptions: { styles: [{ color: 'blue', weight: 4 }] },
+        show: false,
+        router: L.Routing.osrmv1({
+          serviceUrl: 'https://router.project-osrm.org/route/v1'
+        })
       });
 
-      // Botão para capturar a localização atual
-      document.getElementById('getLocationButton').addEventListener('click', function () {
-          if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition(function (position) {
-                  var lat = position.coords.latitude;
-                  var lon = position.coords.longitude;
-                  L.marker([lat, lon]).addTo(map).bindPopup('Você está aqui!').openPopup();
-                  map.setView([lat, lon], 15);
-              }, function () {
-                  alert('Não foi possível obter sua localização.');
-              });
-          } else {
-              alert('Geolocalização não é suportada pelo seu navegador.');
-          }
+      routingControl.on('routesfound', e => displayRoute(e.routes[0]));
+      routingControl.on('routingerror', () => alert('Erro ao calcular a rota. Tente novamente.'));
+      routingControl.addTo(map);
+    }
+
+    function displayRoute(route) {
+      document.getElementById('routeDistance').textContent = `${(route.summary.totalDistance / 1000).toFixed(2)} km`;
+      document.getElementById('routeDetails').style.display = 'block';
+
+      const startLatLng = startPoint.getLatLng();
+      const endLatLng = endPoint.getLatLng();
+      const googleMapsLink = `https://www.google.com/maps/dir/?api=1&origin=${startLatLng.lat},${startLatLng.lng}&destination=${endLatLng.lat},${endLatLng.lng}&travelmode=bicycling`;
+      
+      const linkElement = document.getElementById('googleMapsLink');
+      linkElement.href = googleMapsLink;
+      linkElement.style.display = 'block';
+
+      if (routeLayer) map.removeLayer(routeLayer);
+      routeLayer = L.Routing.line(route).addTo(map);
+    }
+
+    document.getElementById('resetRouteButton').addEventListener('click', resetRoute);
+
+    function resetRoute() {
+      startPoint = endPoint = null;
+      if (routeLayer) map.removeLayer(routeLayer);
+      map.eachLayer(layer => {
+        if (layer instanceof L.Marker) map.removeLayer(layer);
       });
+      document.getElementById('routeDetails').style.display = 'none';
+    }
+
+    document.getElementById('getLocationButton').addEventListener('click', getCurrentLocation);
+
+    function getCurrentLocation() {
+      if (!navigator.geolocation) return alert('Geolocalização não é suportada pelo seu navegador.');
+
+      navigator.geolocation.getCurrentPosition(({ coords }) => {
+        const { latitude, longitude } = coords;
+        const locationMarker = L.marker([latitude, longitude], {
+          icon: L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+            iconSize: [32, 32]
+          })
+        }).addTo(map).bindPopup('Você está aqui!').openPopup();
+        map.setView([latitude, longitude], 15);
+      }, () => alert('Não foi possível obter sua localização.'));
+    }
   });
 </script>
 
