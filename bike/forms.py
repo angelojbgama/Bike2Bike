@@ -1,5 +1,5 @@
 from django import forms
-from .models import Lugar, Comentario
+from .models import Lugar, Comentario, Evento
 import requests
 
 # Dicionário para mapear códigos de países para seus nomes em português
@@ -275,4 +275,24 @@ class ComentarioForm(forms.ModelForm):
                 'rows': 3, 
                 'placeholder': 'Escreva seu comentário aqui...'
             }),
+        }
+
+
+class EventoForm(forms.ModelForm):
+    data_inicio = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        label='Data de Início'
+    )
+    data_fim = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        label='Data de Fim'
+    )
+
+    class Meta:
+        model = Evento
+        fields = ['nome', 'descricao', 'foto', 'data_inicio', 'data_fim', 
+                  'responsavel', 'contato', 'latitude', 'longitude']
+        widgets = {
+            'latitude': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'longitude': forms.TextInput(attrs={'readonly': 'readonly'}),
         }

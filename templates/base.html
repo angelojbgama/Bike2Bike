@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>{% block title %}Bike2Bike{% endblock %}</title>
 
-
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -22,7 +21,6 @@
     <!-- Custom CSS (opcional) -->
     <link rel="stylesheet" href="{% static 'styles.css' %}">
 </head>
-
 
 <body class="d-flex flex-column min-vh-100">
 
@@ -46,16 +44,15 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'rota_calculo' %}">Calculo de Rota</a>
                     </li>
-
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'eventos-list' %}">Eventos</a> <!-- Link para Eventos -->
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
-    
 
-
-        {% block content %}{% endblock %}
-    
+    {% block content %}{% endblock %}
 
     <!-- Footer sempre na base da página -->
     <footer class="container-fluid bg-dark text-white text-center p-3">
@@ -65,7 +62,5 @@
         </p>
     </footer>
 
-        
-    
 </body>
 </html>

@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block title %}Cadastrar Evento{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5" style="max-width: 800px;">
+  <div class="card shadow-lg p-4" style="border-radius: 15px;">
+    <div class="card-body">
+      <h2 class="text-center mb-4">Cadastre um Novo Evento</h2>
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="id_nome" class="form-label">Nome:</label>
+              {{ form.nome }}
+            </div>
+            <div class="mb-3">
+              <label for="id_descricao" class="form-label">Descrição:</label>
+              {{ form.descricao }}
+            </div>
+            <div class="mb-3">
+              <label for="id_foto" class="form-label">Foto:</label>
+              {{ form.foto }}
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="id_data_inicio" class="form-label">Data de Início:</label>
+              {{ form.data_inicio }}
+            </div>
+            <div class="mb-3">
+              <label for="id_data_fim" class="form-label">Data de Fim:</label>
+              {{ form.data_fim }}
+            </div>
+            <div class="mb-3">
+              <label for="id_responsavel" class="form-label">Responsável:</label>
+              {{ form.responsavel }}
+            </div>
+            <div class="mb-3">
+              <label for="id_contato" class="form-label">Contato:</label>
+              {{ form.contato }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Busca de Endereço -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <input 
+              type="text" 
+              id="searchAddress" 
+              class="form-control" 
+              placeholder="Digite o endereço (Rua, Cidade, País)"
+              aria-label="Buscar endereço"
+            >
+          </div>
+          <div class="d-grid">
+            <button 
+              type="button" 
+              class="btn btn-primary btn-lg w-100" 
+              id="searchButton" 
+              style="border-radius: 8px; transition: background-color 0.3s;"
+              onmouseover="this.style.backgroundColor='#0056b3';"
+              onmouseout="this.style.backgroundColor='#0d6efd';"
+            >
+              Buscar
+            </button>
+          </div>
+        </div>
+
+        <!-- Mapa Interativo -->
+        <div id="map" class="mb-4" style="height: 300px; width: 100%; border-radius: 10px;"></div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="id_latitude" class="form-label">Latitude:</label>
+              {{ form.latitude }}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="id_longitude" class="form-label">Longitude:</label>
+              {{ form.longitude }}
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100 mt-4">
+          <i class="bi bi-check-circle me-2"></i> Cadastrar Evento
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Leaflet JS e CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet">
+
+<script>
+  // Inicializa o mapa
+  var map = L.map('map').setView([-23.5505, -46.6333], 13); // São Paulo como ponto inicial
+
+  // Adiciona camada de tiles do OpenStreetMap
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  var marker;
+
+  // Evento de clique no mapa para capturar coordenadas
+  map.on('click', function (e) {
+    var latitude = e.latlng.lat;
+    var longitude = e.latlng.lng;
+
+    if (marker) {
+      marker.setLatLng(e.latlng);
+    } else {
+      marker = L.marker(e.latlng).addTo(map);
+    }
+
+    document.getElementById('id_latitude').value = latitude;
+    document.getElementById('id_longitude').value = longitude;
+  });
+
+  // Função para buscar endereço na API Nominatim
+  function searchAddress() {
+    var address = document.getElementById('searchAddress').value;
+    if (address) {
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.length > 0) {
+            var latitude = data[0].lat;
+            var longitude = data[0].lon;
+
+            map.setView([latitude, longitude], 15);
+
+            if (marker) {
+              marker.setLatLng([latitude, longitude]);
+            } else {
+              marker = L.marker([latitude, longitude]).addTo(map);
+            }
+
+            document.getElementById('id_latitude').value = latitude;
+            document.getElementById('id_longitude').value = longitude;
+          } else {
+            alert('Endereço não encontrado!');
+          }
+        })
+        .catch(error => console.error('Erro na busca de endereço:', error));
+    } else {
+      alert('Por favor, digite um endereço.');
+    }
+  }
+
+  // Evento para o botão de busca
+  document.getElementById('searchButton').addEventListener('click', searchAddress);
+
+  // Evento para pressionar Enter na barra de busca
+  document.getElementById('searchAddress').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+      searchAddress();
+    }
+  });
+</script>
+{% endblock %}

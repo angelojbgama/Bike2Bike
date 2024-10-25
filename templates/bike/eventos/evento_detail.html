@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Detalhes do Evento{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>{{ object.nome }}</h2>
+  <p>{{ object.descricao }}</p>
+  {% if object.foto %}
+    <img src="{{ object.foto.url }}" class="img-fluid" alt="Foto do Evento">
+  {% endif %}
+  <p>Data de Início: {{ object.data_inicio }}</p>
+  <p>Data de Fim: {{ object.data_fim }}</p>
+  <p>Responsável: {{ object.responsavel }}</p>
+  <p>Contato: {{ object.contato }}</p>
+  <p>Curtidas: {{ object.curtidas }}</p>
+
+  <form method="POST">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-success">Curtir</button>
+  </form>
+</div>
+{% endblock %}

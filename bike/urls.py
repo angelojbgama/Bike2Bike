@@ -10,6 +10,9 @@ from .views import (
     ComentarioDeleteView,
     ComentarioLugarListView,
     RotaView,
+    EventoCreateView,
+    EventoListView,
+    EventoDetailView,
 )
 
 urlpatterns = [
@@ -18,7 +21,10 @@ urlpatterns = [
     path('cadastrar/', LugarCreateView.as_view(), name='cadastrar_lugar'),
     path('sobre/', SobreServicoView.as_view(), name='sobre_servico'),
 
-
+    # Rotas para eventos
+    path('eventos/', EventoListView.as_view(), name='eventos-list'),
+    path('eventos/novo/', EventoCreateView.as_view(), name='eventos-create'),
+    path('eventos/<int:pk>/', EventoDetailView.as_view(), name='eventos-detail'),
 
     path('rota/', RotaView.as_view(), name='rota_calculo'),  # Nova URL para a rota
 

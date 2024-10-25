@@ -8,6 +8,7 @@
       <h3 class="text-center mb-4 text-primary">Detalhes do Percurso</h3>
       <div id="routeDetails" class="text-center" style="display: none;">
         <p><strong>Distância:</strong> <span id="routeDistance">N/A</span></p>
+        <div id="weatherInfo"></div>
         <a id="googleMapsLink" class="btn btn-success w-100 mt-4" target="_blank" style="display: none;">
           Abrir no Google Maps
         </a>
@@ -38,11 +39,15 @@
 <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
 
-<style>
-  #sidebar {
-    max-height: 400px;
-    overflow-y: auto;
-  }
+<style>  
+#sidebar {
+  height: 100vh; /* Ocupa toda a altura da tela */
+  max-height: none; /* Remove o limite de altura */
+  overflow-y: auto; /* Permite rolagem apenas se necessário */
+  padding: 20px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
 
   .leaflet-routing-container {
     display: none;
@@ -118,8 +123,32 @@
       linkElement.href = googleMapsLink;
       linkElement.style.display = 'block';
 
+      fetchWeatherData(startLatLng, 'Partida');
+      fetchWeatherData(endLatLng, 'Destino');
+
       if (routeLayer) map.removeLayer(routeLayer);
       routeLayer = L.Routing.line(route).addTo(map);
+    }
+
+    function fetchWeatherData(latlng, point) {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${latlng.lat}&longitude=${latlng.lng}&current_weather=true`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          const weather = data.current_weather;
+          displayWeatherInfo(point, weather);
+        })
+        .catch(error => console.error('Erro ao obter dados meteorológicos:', error));
+    }
+
+    function displayWeatherInfo(point, weather) {
+      const weatherInfo = document.getElementById('weatherInfo');
+      const info = document.createElement('p');
+      info.innerHTML = `<strong>Clima ${point}:</strong><br>` +
+                       `Temperatura: ${weather.temperature}°C<br>` +
+                       `Vento: ${weather.windspeed} km/h, Direção: ${weather.winddirection}°`;
+      weatherInfo.appendChild(info);
     }
 
     document.getElementById('resetRouteButton').addEventListener('click', resetRoute);
@@ -131,6 +160,7 @@
         if (layer instanceof L.Marker) map.removeLayer(layer);
       });
       document.getElementById('routeDetails').style.display = 'none';
+      document.getElementById('weatherInfo').innerHTML = '';
     }
 
     document.getElementById('getLocationButton').addEventListener('click', getCurrentLocation);

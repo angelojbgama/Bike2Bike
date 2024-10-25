@@ -36,3 +36,18 @@ class Comentario(models.Model):
 
     def __str__(self):
         return f"Comentário em {self.lugar.nome}"
+
+class Evento(models.Model):
+    nome = models.CharField(max_length=100)
+    descricao = models.TextField()
+    foto = models.ImageField(upload_to='eventos/', null=True, blank=True)
+    data_inicio = models.DateField()
+    data_fim = models.DateField()
+    responsavel = models.CharField(max_length=100)
+    contato = models.CharField(max_length=100, help_text='Email ou Telefone')
+    curtidas = models.PositiveIntegerField(default=0)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return self.nome

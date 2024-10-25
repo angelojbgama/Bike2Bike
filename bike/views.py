@@ -1,9 +1,9 @@
 from django.urls import reverse_lazy, reverse
-from django.views.generic import TemplateView, CreateView, ListView, UpdateView, DeleteView, FormView
+from django.views.generic import TemplateView, CreateView, ListView, UpdateView, DeleteView, FormView, DetailView
 from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from .models import Lugar, Comentario
-from .forms import BikeSearchForm
+from .models import Lugar, Comentario, Evento
+from .forms import BikeSearchForm, EventoForm
 import requests
 
 def get_cities_by_country(request):
@@ -179,3 +179,26 @@ class RotaView(TemplateView):
         context["start_lat"] = -23.55052  # São Paulo (Latitude)
         context["start_lon"] = -46.6333  # São Paulo (Longitude)
         return context
+
+
+
+class EventoCreateView(CreateView):
+    model = Evento
+    form_class = EventoForm
+    template_name = 'bike/eventos/evento_form.html'
+    success_url = reverse_lazy('eventos-list')
+
+class EventoListView(ListView):
+    model = Evento
+    template_name = 'bike/eventos/evento_list.html'
+    context_object_name = 'eventos'
+
+class EventoDetailView(DetailView):
+    model = Evento
+    template_name = 'bike/eventos/evento_detail.html'
+
+    def post(self, request, *args, **kwargs):
+        evento = self.get_object()
+        evento.curtidas += 1
+        evento.save()
+        return self.get(request, *args, **kwargs)
