@@ -5,6 +5,9 @@ from django.shortcuts import get_object_or_404, redirect
 from .models import Lugar, Comentario, Evento
 from .forms import BikeSearchForm, EventoForm
 import requests
+from django.db.models import Q
+import math
+from django.utils import timezone
 
 def get_cities_by_country(request):
     """
@@ -49,6 +52,7 @@ class ResultadosBuscaView(TemplateView):
         city = self.kwargs["city"]
         country = self.kwargs["country"]
 
+        # Dados das redes de bicicleta
         response = requests.get("http://api.citybik.es/v2/networks")
         if response.status_code == 200:
             networks = response.json().get("networks", [])
@@ -70,6 +74,7 @@ class ResultadosBuscaView(TemplateView):
         else:
             context["bikes_data"] = []
 
+        # Dados dos lugares
         lugares = Lugar.objects.all()
         lugares_data = [
             {
@@ -83,9 +88,33 @@ class ResultadosBuscaView(TemplateView):
             for lugar in lugares
         ]
         context["lugares_data"] = lugares_data
+
+        # Dados dos eventos válidos e com coordenadas preenchidas
+        eventos = Evento.objects.filter(
+            data_fim__gte=timezone.now().date(), latitude__isnull=False, longitude__isnull=False
+        )
+        eventos_data = [
+            {
+                "nome": evento.nome,
+                "descricao": evento.descricao,
+                "latitude": evento.latitude,
+                "longitude": evento.longitude,
+                "curtidas": evento.curtidas,
+                "data_inicio": evento.data_inicio.strftime("%Y-%m-%d"),
+                "data_fim": evento.data_fim.strftime("%Y-%m-%d"),  # Formata a data para JSON
+                "contato": evento.contato,
+                "detalhes_url": reverse("evento_detalhes", args=[evento.pk])  # Aqui garantimos que estamos acessando o ID de um único objeto
+
+            }
+            for evento in eventos
+        ]
+        context["eventos_data"] = eventos_data
+
         context["city"] = city
         context["country"] = country
         return context
+
+
 
 class LugarCreateView(CreateView):
     model = Lugar
@@ -193,9 +222,58 @@ class EventoListView(ListView):
     template_name = 'bike/eventos/evento_list.html'
     context_object_name = 'eventos'
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        latitude = self.request.GET.get('latitude')
+        longitude = self.request.GET.get('longitude')
+        raio = self.request.GET.get('raio')
+
+        if latitude and longitude and raio:
+            try:
+                lat = float(latitude)
+                lon = float(longitude)
+                raio_km = float(raio)
+
+                # Convertendo o raio de km para metros
+                raio_m = raio_km * 1000
+
+                # Calcula a distância entre dois pontos usando a fórmula de Haversine
+                def haversine(lat1, lon1, lat2, lon2):
+                    R = 6371000  # Raio da Terra em metros
+                    phi1 = math.radians(lat1)
+                    phi2 = math.radians(lat2)
+                    delta_phi = math.radians(lat2 - lat1)
+                    delta_lambda = math.radians(lon2 - lon1)
+
+                    a = math.sin(delta_phi / 2) ** 2 + \
+                        math.cos(phi1) * math.cos(phi2) * \
+                        math.sin(delta_lambda / 2) ** 2
+
+                    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+                    return R * c  # Retorna a distância em metros
+
+                # Filtrar eventos próximos
+                eventos_proximos = []
+                for evento in queryset:
+                    distancia = haversine(lat, lon, evento.latitude, evento.longitude)
+                    if distancia <= raio_m:
+                        eventos_proximos.append(evento.id)
+
+                queryset = queryset.filter(id__in=eventos_proximos)
+
+            except ValueError:
+                # Se latitude, longitude ou raio não forem números válidos, retorna a queryset padrão
+                pass
+
+        return queryset
+
+
+
 class EventoDetailView(DetailView):
     model = Evento
     template_name = 'bike/eventos/evento_detail.html'
+
 
     def post(self, request, *args, **kwargs):
         evento = self.get_object()

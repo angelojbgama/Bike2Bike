@@ -24,7 +24,7 @@ urlpatterns = [
     # Rotas para eventos
     path('eventos/', EventoListView.as_view(), name='eventos-list'),
     path('eventos/novo/', EventoCreateView.as_view(), name='eventos-create'),
-    path('eventos/<int:pk>/', EventoDetailView.as_view(), name='eventos-detail'),
+    path('eventos/<int:pk>/', EventoDetailView.as_view(), name='evento_detalhes'),  # Nome alterado para 'evento_detalhes'
 
     path('rota/', RotaView.as_view(), name='rota_calculo'),  # Nova URL para a rota
 

@@ -37,16 +37,13 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-      // Inicializa o mapa no centro da cidade fornecida
       var map = L.map('map').setView([{{ bikes_data.0.location.latitude }}, {{ bikes_data.0.location.longitude }}], 13);
 
-      // Adiciona camada CyclOSM ao mapa
       L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, CyclOSM',
           maxZoom: 18
       }).addTo(map);
 
-      // Adiciona marcadores para os lugares salvos no banco de dados
       var lugares = {{ lugares_data|safe }};
       lugares.forEach(function(lugar) {
           var popupContent = `
@@ -55,13 +52,28 @@
               Tipo: ${lugar.tipo}<br>
               <a href="${lugar.comentarios_url}" target="_blank">Ver Comentários</a>
           `;
-
           L.marker([lugar.latitude, lugar.longitude])
               .addTo(map)
               .bindPopup(popupContent);
       });
 
-      // Adiciona marcadores para cada estação
+      // Contexto de eventos ajustado para o JavaScript
+      var eventos = {{ eventos_data|safe }};
+      eventos.forEach(function(evento) {
+          var popupContent = `
+              <strong>${evento.nome}</strong><br>
+              <em>Início: ${evento.data_inicio}</em><br>
+              <em>Fim: ${evento.data_fim}</em><br>
+              Curtidas: ${evento.curtidas}<br>
+              <a href="${evento.detalhes_url}" target="_blank">Ver Detalhes</a><br>
+              ${evento.foto_url ? `<img src="${evento.foto_url}" alt="${evento.nome}" style="width:100px; height:auto; margin-top:10px;">` : ''}
+          `;
+
+          L.marker([evento.latitude, evento.longitude])
+              .addTo(map)
+              .bindPopup(popupContent);
+      });
+
       {% for bike in bikes_data %}
           {% for station in bike.stations %}
               L.marker([{{ station.latitude }}, {{ station.longitude }}])
@@ -76,18 +88,15 @@
           {% endfor %}
       {% endfor %}
 
-      // Botão para Capturar a Localização do Usuário
       document.getElementById('getLocationButton').addEventListener('click', function () {
           if (navigator.geolocation) {
               navigator.geolocation.getCurrentPosition(function (position) {
                   var lat = position.coords.latitude;
                   var lon = position.coords.longitude;
 
-                  // Adiciona um marcador na posição do usuário
                   L.marker([lat, lon]).addTo(map)
                       .bindPopup('Você está aqui!').openPopup();
 
-                  // Centraliza o mapa na posição do usuário
                   map.setView([lat, lon], 15);
               }, function () {
                   alert('Não foi possível obter sua localização.');

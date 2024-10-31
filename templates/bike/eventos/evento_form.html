@@ -67,6 +67,17 @@
               Buscar
             </button>
           </div>
+          <!-- Botão de localização -->
+          <div class="d-grid mt-3">
+            <button 
+              type="button" 
+              class="btn btn-primary btn-lg w-100" 
+              onclick="getUserLocation()" 
+              style="border-radius: 8px;"
+            >
+              Minha Localização
+            </button>
+          </div>
         </div>
 
         <!-- Mapa Interativo -->
@@ -155,6 +166,31 @@
         .catch(error => console.error('Erro na busca de endereço:', error));
     } else {
       alert('Por favor, digite um endereço.');
+    }
+  }
+
+  // Função para capturar a localização do usuário
+  function getUserLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        var latitude = position.coords.latitude;
+        var longitude = position.coords.longitude;
+
+        map.setView([latitude, longitude], 15);
+
+        if (marker) {
+          marker.setLatLng([latitude, longitude]);
+        } else {
+          marker = L.marker([latitude, longitude]).addTo(map);
+        }
+
+        document.getElementById('id_latitude').value = latitude;
+        document.getElementById('id_longitude').value = longitude;
+      }, function() {
+        alert("Não foi possível obter a localização.");
+      });
+    } else {
+      alert("Geolocalização não é suportada pelo seu navegador.");
     }
   }
 

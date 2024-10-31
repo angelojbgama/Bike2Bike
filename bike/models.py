@@ -1,14 +1,15 @@
 from django.db import models
+from django.utils import timezone
 
 # Constante para os tipos de lugares
-TIPOS_DE_LUGARES = {
-    'parque': 'Parque público',
-    'museu': 'Museu ou galeria de arte',
-    'restaurante': 'Restaurante ou café',
-    'hotel': 'Hotel ou hospedagem',
-    'mercado': 'Supermercado ou feira',
-    'bike_reparo': 'Reparo de bicicleta',
-}
+TIPOS_DE_LUGARES = [
+    ('parque', 'Parque público'),
+    ('museu', 'Museu ou galeria de arte'),
+    ('restaurante', 'Restaurante ou café'),
+    ('hotel', 'Hotel ou hospedagem'),
+    ('mercado', 'Supermercado ou feira'),
+    ('bike_reparo', 'Reparo de bicicleta'),
+]
 
 class Lugar(models.Model):
     nome = models.CharField(max_length=200)
@@ -17,7 +18,7 @@ class Lugar(models.Model):
     longitude = models.FloatField()
     tipo = models.CharField(
         max_length=50,
-        choices=TIPOS_DE_LUGARES.items(),
+        choices=TIPOS_DE_LUGARES,
         default='parque'
     )
 
@@ -37,6 +38,7 @@ class Comentario(models.Model):
     def __str__(self):
         return f"Comentário em {self.lugar.nome}"
 
+
 class Evento(models.Model):
     nome = models.CharField(max_length=100)
     descricao = models.TextField()
@@ -46,8 +48,17 @@ class Evento(models.Model):
     responsavel = models.CharField(max_length=100)
     contato = models.CharField(max_length=100, help_text='Email ou Telefone')
     curtidas = models.PositiveIntegerField(default=0)
-    latitude = models.FloatField(null=True, blank=True)
-    longitude = models.FloatField(null=True, blank=True)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
 
     def __str__(self):
         return self.nome
+
+    def is_expired(self):
+        """Verifica se o evento já expirou com base na data de fim."""
+        return self.data_fim < timezone.now().date()
+
+    def save(self, *args, **kwargs):
+        # Opcional: Pode impedir salvar eventos expirados diretamente
+        if not self.is_expired():
+            super(Evento, self).save(*args, **kwargs)
