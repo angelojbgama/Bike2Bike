@@ -9,6 +9,12 @@
       <div class="card shadow-lg">
         <div class="card-body p-5">
           <h2 class="text-center mb-4">Encontre Serviços de Bike</h2>
+          
+          <!-- Aviso sobre a lentidão do serviço -->
+          <div class="alert alert-warning text-center" role="alert">
+            O serviço pode estar lento devido ao uso da API. Agradecemos sua paciência.
+          </div>
+          
           <form method="POST" id="searchForm">
             {% csrf_token %}
             
