@@ -9,6 +9,8 @@ from django.db.models import Q
 import math
 from django.utils import timezone
 
+
+
 def get_cities_by_country(request):
     """
     Retorna cidades disponíveis para um país usando a API CityBikes.
