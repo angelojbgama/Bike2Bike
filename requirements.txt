@@ -1,10 +1,10 @@
-asgiref==3.8.1
-certifi==2024.8.30
-charset-normalizer==3.4.0
-Django==5.1.2
-idna==3.10
-pillow==11.0.0
-requests==2.32.3
-sqlparse==0.5.1
-tzdata==2024.2
-urllib3==2.2.3
+asgiref==3.8.1         # Biblioteca usada pelo Django para ASGI, compatível com Django 4.2
+certifi==2024.8.30     # Certificados SSL para conexões seguras
+charset-normalizer==3.4.0  # Normaliza caracteres de strings
+Django==4.2           # Versão compatível com Python 3.8 (Django 5.1.2 requer Python >=3.10)
+idna==3.10           # Suporte para nomes de domínio IDN
+pillow==11.0.0       # Biblioteca para processamento de imagens
+requests==2.32.3     # Biblioteca para requisições HTTP
+sqlparse==0.5.1      # Auxilia no parsing de SQL, usado internamente pelo Django
+tzdata==2024.2       # Dados de fuso horário, necessário para o Django
+urllib3==2.2.3       # Biblioteca HTTP que trabalha com conexões via urllib
