@@ -5,9 +5,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-)^%6b9n##2fq!@toz_kps1q&*=)f&%niw%cly@v(5ao4^np(34'
 
-DEBUG = True  # Lembre-se de mudar para False em produção!
+DEBUG = False  # Lembre-se de mudar para False em produção!
 
-ALLOWED_HOSTS = ['tembike.fly.dev', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['angelobeta.pythonanywhere.com']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://tembike.fly.dev',
