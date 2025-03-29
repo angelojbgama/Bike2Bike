@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - Bike2Bike{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-screen bg-base-100">
+  <div class="card w-96 bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title justify-center">Login</h2>
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="form-control">
+            {% include 'macros/form_field_col_n.html' with field=form.username  input_type='date' main_class='input input-neutral'%}
+        </div>
+
+        <div class="form-control mt-4">
+            {% include 'macros/form_field_col_n.html' with field=form.password main_class='input input-neutral' %}
+        </div>
+
+        <div class="form-control mt-6">
+          <button type="submit" class="btn btn-primary">Entrar</button>
+        </div>
+      </form>
+      <div class="text-center mt-4">
+        <span>Ainda não tem conta? </span>
+        <a href="{% url 'signup' %}" class="link link-info">Cadastre-se</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

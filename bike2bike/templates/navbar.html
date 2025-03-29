@@ -1,0 +1,60 @@
+<!-- Navbar com DaisyUI e Login -->
+<div class="navbar bg-primary text-primary-content shadow z-50">
+    <div class="container mx-auto flex justify-between items-center">
+        <!-- Lado esquerdo: Logo e nome -->
+        <div class="flex items-center gap-3">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/bicycle.png" width="30" height="30" alt="Bike Icon">
+            <a href="" class="text-xl font-bold hover:text-secondary transition">
+                Bike2Bike
+            </a>
+        </div>
+
+        <!-- Menu desktop: exibido em telas md ou maiores -->
+        <div class="hidden md:flex gap-2 items-center">
+            <!-- Se o usuário estiver autenticado, exibe dropdown com avatar -->
+            {% if user.is_authenticated %}
+            <div class="dropdown dropdown-end">
+                <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+                    <div class="w-10 rounded-full">
+                        <!-- Exibe imagem do perfil, ou um placeholder se não houver -->
+                        <img src="{{ user.profile.image.url|default:'https://via.placeholder.com/150' }}" alt="Avatar">
+                    </div>
+                </label>
+                <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+                    <li>
+                        <a href="{% url 'profile' %}">
+                            Profile
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'logout' %}">Logout</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- Se não estiver autenticado, exibe link de Login -->
+            {% else %}
+            <a class="btn btn-sm btn-ghost" href="{% url 'login' %}">Login</a>
+            {% endif %}
+        </div>
+
+        <!-- Menu mobile: aparece em telas menores -->
+        <div class="dropdown dropdown-end md:hidden">
+            <!-- Botão hamburger -->
+            <label tabindex="0" class="btn btn-sm btn-ghost">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </label>
+            <!-- Dropdown com os links -->
+            <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 text-base-content rounded-box w-52">
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'profile' %}">Profile</a></li>
+                    <li><a href="{% url 'logout' %}">Logout</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}">Login</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cadastro - Bike2Bike{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-screen">
+    <div class="card w-96 bg-base-200 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title justify-center">Cadastre-se</h2>
+            <form method="post">
+                {% csrf_token %}
+                <!-- Renderiza os campos do formulário (você pode personalizar os campos se desejar) -->
+                {{ form.as_p }}
+                <div class="form-control mt-6">
+                    <button type="submit" class="btn btn-primary">Cadastrar</button>
+                </div>
+            </form>
+            <div class="mt-4 text-center">
+                <span>Já tem conta? </span>
+                <a href="{% url 'login' %}" class="link link-info">Entre</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
