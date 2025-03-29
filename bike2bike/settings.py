@@ -5,9 +5,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-)^%6b9n##2fq!@toz_kps1q&*=)f&%niw%cly@v(5ao4^np(34'
 
-DEBUG = True  # Lembre-se de mudar para False em produção!
+DEBUG = False  # Lembre-se de mudar para False em produção!
 
+<<<<<<< HEAD:bike2bike/settings.py
 ALLOWED_HOSTS = ['bike2bike.fly.dev', 'localhost', '127.0.0.1']
+=======
+ALLOWED_HOSTS = ['angelobeta.pythonanywhere.com']
+>>>>>>> 3d18f37b5ecca7b5170bcb1d574e3c9209283afb:tembike/settings.py
 
 CSRF_TRUSTED_ORIGINS = [
     'https://bike2bike.fly.dev',
