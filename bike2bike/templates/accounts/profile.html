@@ -1,14 +1,35 @@
+{# profile.html #}
 {% extends 'base.html' %}
 {% load static %}
+{% load avatar_tags %}
 
 {% block title %}Perfil - Bike2Bike{% endblock %}
 
 {% block content %}
 <div class="text-center mt-10">
   <h1 class="text-2xl font-bold">Bem-vindo, {{ user.username }}!</h1>
+  
+  <!-- Exibe o avatar atual usando a tag do django-avatar -->
+  <div class="avatar mt-4">
+    {% avatar user 120 as avatar_url %}
+    {{ avatar_url }}
+  </div>
+  
+  <!-- Formulário para upload do avatar -->
+  <div class="mt-6 max-w-xs mx-auto">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_div|safe }}
+      
+      <button type="submit" class="btn btn-primary mt-4">
+        Atualizar Avatar
+      </button>
+    </form>
+  </div>
+  
   <p class="mt-4">Você está logado.</p>
   <label for="logout-modal" class="btn btn-outline btn-error mt-6">
     Sair
   </label>
-  </div>
+</div>
 {% endblock %}
