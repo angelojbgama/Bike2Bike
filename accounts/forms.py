@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from bike2bike.mixins.DaisyUIFormMixin import DaisyUIStyledFormMixin
+from avatar.forms import UploadAvatarForm
 
 
 
@@ -17,30 +18,30 @@ class CustomUserCreationForm(DaisyUIStyledFormMixin, UserCreationForm):
         fields = ("username", "email", "password1", "password2")
         field_styles = {
             "username": {
-                "classes": "input-primary input-md",
-                "type": "text",  # aqui você define o type do input
+                "classes": " input-primary input-md",
+                "type": "text",
                 "icon": '<i class="fa fa-user h-[1em] opacity-50"></i>',
                 "placeholder": "Usuário",
                 "wrapper_class": "w-full",
                 "row_class": "mb-4",
             },
             "email": {
-                "classes": "input-info",
+                "classes": " input-info",
                 "placeholder": "mail@site.com",
                 "icon": '<i class="fa fa-envelope h-[1em] opacity-50"></i>',
+                "wrapper_class": "w-full",
                 "row_class": "mb-4",
-
             },
             "password1": {
-                "classes": "input-success",
+                "classes": " input-success",
                 "icon": '<i class="fa fa-key h-[1em] opacity-50"></i>',
                 "placeholder": "Senha forte",
                 "hint": "Use pelo menos uma letra maiúscula, minúscula e um número",
                 "type": "password",
                 "pattern": "(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}",
                 "title": "Senha segura com maiúscula, minúscula e número",
+                "wrapper_class": "w-full",
                 "row_class": "mb-4",
-
             },
             "password2": {
                 "classes": "input-success",
@@ -50,6 +51,7 @@ class CustomUserCreationForm(DaisyUIStyledFormMixin, UserCreationForm):
                 "type": "password",
                 "pattern": "(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}",
                 "title": "Senha segura com maiúscula, minúscula e número",
+                "wrapper_class": "w-full",
                 "row_class": "mb-4",
             },
         }
@@ -88,3 +90,23 @@ class CustomAuthenticationForm(DaisyUIStyledFormMixin, AuthenticationForm):
                 "autocomplete": "off",# Classe para espaçamento inferior
             },
         }
+
+class CustomUploadAvatarForm(DaisyUIStyledFormMixin, UploadAvatarForm):
+    avatar = forms.ImageField(label="Escolha um avatar")
+
+    class Meta:
+        field_styles = {
+            "avatar": {
+                "classes": "file-input file-input-bordered w-full appearance-none outline-none border-none",
+                "placeholder": "Selecione um avatar",
+                "row_class": "mb-4",  
+                "wrapper_class": "",   
+            
+            }
+        }
+
+    def clean_avatar(self):
+        avatar_data = super().clean_avatar()
+        if avatar_data is None:
+            avatar_data = self.cleaned_data.get("avatar")
+        return avatar_data
