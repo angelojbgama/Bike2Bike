@@ -9,7 +9,7 @@ tailwindcss/node_modules/
 
 # Backup files # 
 *.bak 
-
+accounts/migrations
 # If you are using PyCharm # 
 # User-specific stuff
 .idea/**/workspace.xml
