@@ -1,13 +1,18 @@
 # accounts/views.py
 from django.contrib.auth import login
-from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, TemplateView
+from django.views.generic import CreateView, FormView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views import View
+
 from django.conf import settings
+from .forms import CustomUploadAvatarForm
+from django.contrib import messages
+from django.utils.translation import gettext as _
+
+from avatar.models import Avatar
 
 from accounts.forms import CustomUserCreationForm
 
@@ -22,14 +27,26 @@ class SignUpView(CreateView):
         # Realiza o login automático do usuário após o cadastro
         login(self.request, self.object)
         return response
-
-class ProfileView(LoginRequiredMixin, TemplateView):
-    """
-    View para exibir o perfil do usuário logado.
-    O mixin LoginRequiredMixin garante que somente usuários autenticados possam acessar.
-    """
+    
+# Exemplo de view baseada em classe
+class ProfileView(LoginRequiredMixin, FormView):
     template_name = 'accounts/profile.html'
+    form_class = CustomUploadAvatarForm  # Importante: usar o formulário que tem o DaisyUI mixin
+    success_url = reverse_lazy('profile')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        # Lógica para salvar o avatar
+        avatar_image = form.cleaned_data["avatar"]
+        avatar = Avatar(user=self.request.user, primary=True)
+        avatar.avatar.save(avatar_image.name, avatar_image)
+        avatar.save()
+        messages.success(self.request, "Avatar atualizado com sucesso!")
+        return super().form_valid(form)
 
 class CustomLogoutView(View):
     """
