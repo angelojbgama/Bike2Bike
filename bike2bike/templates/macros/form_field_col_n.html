@@ -2,7 +2,7 @@
 <div
   {% if id %} id="{{ id }}" {% endif %}
   
-  type="{{ input_type|default:'date' }}"
+  type="{{ input_type|default:'' }}"
   class="{{ main_class|default:'input input-neutral' }}"
   >
   <!-- Label -->

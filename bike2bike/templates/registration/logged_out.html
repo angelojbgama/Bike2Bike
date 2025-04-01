@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-20 text-center">
+  <div class="card shadow-xl bg-base-100">
+    <div class="card-body">
+      <h2 class="card-title justify-center">Sessão Encerrada</h2>
+      <p class="mt-2">Você saiu da sua conta com sucesso.</p>
+      <a href="{% url 'login' %}" class="btn btn-primary mt-4">Fazer login novamente</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

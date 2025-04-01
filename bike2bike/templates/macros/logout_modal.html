@@ -1,0 +1,17 @@
+<!-- templates/partials/logout_modal.html -->
+<input type="checkbox" id="logout-modal" class="modal-toggle" />
+<div class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Deseja realmente sair?</h3>
+    <p class="py-4">Você será deslogado da aplicação.</p>
+    <div class="modal-action">
+      <!-- Botão para cancelar a ação e fechar o modal -->
+      <label for="logout-modal" class="btn">Cancelar</label>
+      <!-- Formulário de logout com método POST e CSRF para segurança -->
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-error">Sair</button>
+      </form>
+    </div>
+  </div>
+</div>

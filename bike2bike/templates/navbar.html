@@ -1,7 +1,7 @@
-<!-- Navbar com DaisyUI e Login -->
+<!-- Navbar principal com background primário e sombra -->
 <div class="navbar bg-primary text-primary-content shadow z-50">
     <div class="container mx-auto flex justify-between items-center">
-        <!-- Lado esquerdo: Logo e nome -->
+        <!-- Lado esquerdo: Logo e nome da rede social -->
         <div class="flex items-center gap-3">
             <img src="https://img.icons8.com/ios-filled/50/ffffff/bicycle.png" width="30" height="30" alt="Bike Icon">
             <a href="" class="text-xl font-bold hover:text-secondary transition">
@@ -9,50 +9,85 @@
             </a>
         </div>
 
-        <!-- Menu desktop: exibido em telas md ou maiores -->
-        <div class="hidden md:flex gap-2 items-center">
-            <!-- Se o usuário estiver autenticado, exibe dropdown com avatar -->
+        <!-- Menu desktop: Itens posicionados no extremo direito -->
+        <div class="hidden md:flex items-center ml-auto gap-2">
             {% if user.is_authenticated %}
-            <div class="dropdown dropdown-end">
-                <label tabindex="0" class="btn btn-ghost btn-circle avatar">
-                    <div class="w-10 rounded-full">
-                        <!-- Exibe imagem do perfil, ou um placeholder se não houver -->
-                        <img src="{{ user.profile.image.url|default:'https://via.placeholder.com/150' }}" alt="Avatar">
-                    </div>
-                </label>
-                <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
-                    <li>
-                        <a href="{% url 'profile' %}">
-                            Profile
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'logout' %}">Logout</a>
-                    </li>
-                </ul>
-            </div>
-            <!-- Se não estiver autenticado, exibe link de Login -->
+                <!-- Dropdown do sino de notificações -->
+                <div class="dropdown dropdown-end">
+                    <!-- Botão do sino de notificações -->
+                    <button class="btn btn-ghost btn-circle">
+                        <div class="indicator">
+                            <!-- Ícone do sino -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            <!-- Indicador (badge) de notificações -->
+                            <span class="badge badge-xs badge-primary indicator-item"></span>
+                        </div>
+                    </button>
+                    <!-- Dropdown exclusivo do sino de notificações -->
+                    <ul tabindex="0" class="menu dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+                        <li>
+                            <a href="#">Notificação 1</a>
+                        </li>
+                        <li>
+                            <a href="#">Notificação 2</a>
+                        </li>
+                        <!-- Adicione mais notificações conforme necessário -->
+                    </ul>
+                </div>
+
+                <!-- Dropdown do usuário (avatar) -->
+                <div class="dropdown dropdown-end">
+                    <!-- Avatar do usuário que abre o dropdown -->
+                    <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+                        <div class="w-10 rounded-full">
+                            <!-- Exibe imagem do perfil ou um placeholder -->
+                            <img src="{{ user.profile.image.url }}" alt="Avatar">
+                        </div>
+                    </label>
+                    <!-- Dropdown com as opções do usuário -->
+                    <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+                        <li>
+                            <a href="{% url 'profile' %}">Profile</a>
+                        </li>
+                        <li>
+                            <!-- Aciona o modal de logout -->
+                            <label for="logout-modal" class="btn btn-ghost w-full text-left">Logout</label>
+                        </li>
+                    </ul>
+                </div>
             {% else %}
-            <a class="btn btn-sm btn-ghost" href="{% url 'login' %}">Login</a>
+                <!-- Se o usuário não estiver autenticado, exibe o botão de login -->
+                <a class="btn btn-sm btn-ghost" href="{% url 'login' %}">Login</a>
             {% endif %}
         </div>
 
-        <!-- Menu mobile: aparece em telas menores -->
+        <!-- Menu mobile: exibido em telas menores -->
         <div class="dropdown dropdown-end md:hidden">
-            <!-- Botão hamburger -->
             <label tabindex="0" class="btn btn-sm btn-ghost">
+                <!-- Ícone do menu mobile -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </label>
-            <!-- Dropdown com os links -->
             <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 text-base-content rounded-box w-52">
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'profile' %}">Profile</a></li>
-                    <li><a href="{% url 'logout' %}">Logout</a></li>
+                <li>
+                    <a href="{% url 'profile' %}">Profile</a>
+                </li>
+                <li>
+                    <!-- Aciona o modal de logout -->
+                    <label for="logout-modal" class="btn btn-ghost w-full text-left">Logout</label>
+                </li>
                 {% else %}
-                    <li><a href="{% url 'login' %}">Login</a></li>
+                <li>
+                    <a href="{% url 'login' %}">Login</a>
+                </li>
                 {% endif %}
             </ul>
         </div>
