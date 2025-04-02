@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-10 bg-base-100 p-6 rounded-xl shadow-md">
+    <h1 class="text-2xl font-bold mb-6">✏️ Nova Publicação</h1>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+
+        <!-- Campo de texto (conteúdo da publicação) -->
+        <div>
+            <label class="label">
+                <span class="label-text font-semibold">Conteúdo</span>
+            </label>
+            {{ form.conteudo }}
+            {% if form.conteudo.errors %}
+                <p class="text-error text-sm mt-1">{{ form.conteudo.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Campo de imagem -->
+        <div>
+            <label class="label">
+                <span class="label-text font-semibold">Imagem (opcional)</span>
+            </label>
+            {{ form.imagem }}
+            {% if form.imagem.errors %}
+                <p class="text-error text-sm mt-1">{{ form.imagem.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Botões -->
+        <div class="flex justify-end gap-2 pt-4">
+            <a href="{% url 'feed' %}" class="btn btn-outline">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Publicar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
