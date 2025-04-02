@@ -1,27 +1,100 @@
+<!-- templates/social/feed.html -->
 {% extends 'base.html' %}
-
+{% load humanize avatar_tags %}
 {% block content %}
+<!-- Título do Feed -->
 <h1 class="text-2xl font-bold mb-4">Feed</h1>
 
-{% for post in posts %}
-<div class="card shadow-xl bg-base-100 mb-4">
-  <div class="card-body">
-    <!-- 🔗 Título com link para a página da publicação -->
-    <h2 class="card-title">
-      <a href="{% url 'publicacao_detalhe' post.pk %}" class="hover:text-primary transition">
-        {{ post.autor.username }}
-      </a>
-    </h2>
+<!-- MENU DE AÇÕES -->
+<ul class="menu menu-vertical lg:menu-horizontal bg-base-200 rounded-box mb-6">
+  <li>
+    <a href="{% url 'create_post' %}" class="tooltip" data-tip="Criar Post">
+      Criar Post
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'feed' %}" class="tooltip" data-tip="Ver Feed">
+      Feed
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'profile' %}" class="tooltip" data-tip="Meu Perfil">
+      Perfil
+    </a>
+  </li>
+</ul>
+<!-- Título do Feed -->
+<h1 class="text-2xl font-bold mb-4">Feed</h1>
 
-    <p>{{ post.conteudo }}</p>
-
-    {% if post.imagem %}
-      <img src="{{ post.imagem.url }}" class="max-w-xs rounded" />
-    {% endif %}
-
-    <p class="text-sm text-gray-500">{{ post.criado_em|date:"d/m/Y H:i" }}</p>
-  </div>
+<!-- Container dos posts -->
+<div id="feed">
+  {% for post in page_obj %}
+    {% include 'social/_post_item.html' with post=post %}
+  {% endfor %}
 </div>
-{% endfor %}
+
+<!-- Loading spinner do DaisyUI: exibido enquanto os posts estão carregando -->
+<div id="loading" class="text-center my-6" style="display: none;">
+  <span class="loading loading-dots loading-xl"></span>
+</div>
+
+<!-- JavaScript para implementar o Infinite Scroll com delay -->
+<script>
+  // Variáveis de controle para paginação e estado de carregamento
+  let currentPage = 1;
+  let isLoading = false;
+  let hasNext = {{ page_obj.has_next|yesno:"true,false" }};
+  
+  // Função para carregar mais posts via AJAX com um delay aleatório entre 3 e 5 segundos
+  function loadMorePosts() {
+    if (!hasNext || isLoading) return;
+    isLoading = true;
+    currentPage += 1;
+    document.getElementById('loading').style.display = 'block';
+    
+    // Gera um delay aleatório entre 3000 e 5000 milissegundos
+    const delay = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
+    
+    setTimeout(function() {
+      fetch("{% url 'feed_more' %}?page=" + currentPage, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Insere o HTML dos novos posts no final do container
+        document.getElementById('feed').insertAdjacentHTML('beforeend', data.html);
+        hasNext = data.has_next;
+        isLoading = false;
+        document.getElementById('loading').style.display = 'none';
+        
+        // Se a altura do documento ainda for menor que a janela, tenta carregar mais posts automaticamente
+        if (hasNext && document.body.offsetHeight < window.innerHeight + 100) {
+          loadMorePosts();
+        }
+      })
+      .catch(error => {
+        console.error("Erro ao carregar mais posts:", error);
+        isLoading = false;
+        document.getElementById('loading').style.display = 'none';
+      });
+    }, delay);
+  }
+  
+  // Dispara o carregamento automático quando o usuário rola a página
+  window.addEventListener('scroll', function() {
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+      loadMorePosts();
+    }
+  });
+  
+  // Após o carregamento da página, se o conteúdo não preencher a tela, tenta carregar mais posts automaticamente
+  window.addEventListener('load', function() {
+    if (hasNext && document.body.offsetHeight < window.innerHeight + 100) {
+      loadMorePosts();
+    }
+  });
+</script>
 
 {% endblock %}
