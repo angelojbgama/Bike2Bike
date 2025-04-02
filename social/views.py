@@ -12,7 +12,7 @@ def feed_view(request):
     e pagina em blocos de 5 posts.
     """
     posts = Publicacao.objects.all().order_by('-criado_em')
-    paginator = Paginator(posts, 5)  # 5 posts por página
+    paginator = Paginator(posts, 3)  # 5 posts por página
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
@@ -32,7 +32,7 @@ def feed_more_view(request):
     # Verifica se é uma requisição AJAX
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         posts = Publicacao.objects.all().order_by('-criado_em')
-        paginator = Paginator(posts, 5)  # Mesmo número de posts por página
+        paginator = Paginator(posts, 3)  # Mesmo número de posts por página
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         
