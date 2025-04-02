@@ -51,7 +51,7 @@
     document.getElementById('loading').style.display = 'block';
     
     // Gera um delay aleatório entre 3000 e 5000 milissegundos
-    const delay = Math.floor(Math.random() * (5000 - 3000 + 1)) + 3000;
+    const delay = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
     
     setTimeout(function() {
       fetch("{% url 'feed_more' %}?page=" + currentPage, {
