@@ -6,10 +6,13 @@ __pycache__
 db.sqlite3
 media
 tailwindcss/node_modules/
+*/migrations/*.py
 
 # Backup files # 
 *.bak 
-accounts/migrations
+*/migrations/__init__.py
+
+migrations
 # If you are using PyCharm # 
 # User-specific stuff
 .idea/**/workspace.xml
