@@ -1,12 +1,7 @@
-<!-- templates/social/_post_item.html -->
-{% load humanize avatar_tags %}
-<div class="card shadow-xl bg-base-100 mb-4">
-  <div class="card-body">
-    <h2 class="text-xl font-bold">{{ post.titulo }}</h2>
-    <p class="text-sm text-gray-500">{{ post.autor.username }} • {{ post.criado_em|naturaltime }}</p>
-
-    <div class="prose mt-4">
-      {{ post.conteudo|safe }}
-    </div>
+{% for post in page_obj %}
+  {% include 'social/_post_item.html' with post=post %}
+{% empty %}
+  <div class="text-center text-gray-400 mt-10">
+    Nenhuma publicação encontrada.
   </div>
-</div>
+{% endfor %}
