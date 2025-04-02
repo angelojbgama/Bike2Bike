@@ -2,9 +2,9 @@
 {% extends 'base.html' %}
 {% load humanize avatar_tags %}
 {% block content %}
+
 <!-- Título do Feed -->
 <h1 class="text-2xl font-bold mb-4">Feed</h1>
-
 <!-- MENU DE AÇÕES -->
 <ul class="menu menu-vertical lg:menu-horizontal bg-base-200 rounded-box mb-6">
   <li>
@@ -23,8 +23,6 @@
     </a>
   </li>
 </ul>
-<!-- Título do Feed -->
-<h1 class="text-2xl font-bold mb-4">Feed</h1>
 
 <!-- Container dos posts -->
 <div id="feed">
@@ -53,7 +51,7 @@
     document.getElementById('loading').style.display = 'block';
     
     // Gera um delay aleatório entre 3000 e 5000 milissegundos
-    const delay = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
+    const delay = Math.floor(Math.random() * (5000 - 3000 + 1)) + 3000;
     
     setTimeout(function() {
       fetch("{% url 'feed_more' %}?page=" + currentPage, {

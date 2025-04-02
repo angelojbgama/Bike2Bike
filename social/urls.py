@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path('feed/', views.feed_view, name='feed'),
+    path('feed/more/', views.feed_more_view, name='feed_more'),
     path('postar/', views.create_post_view, name='create_post'),
-    path('publicacao/<int:pk>/', views.post_detalhe_view, name='publicacao_detalhe'),  # ← novo
+    path('publicacao/<int:pk>/', views.post_detalhe_view, name='publicacao_detalhe'),
 ]
