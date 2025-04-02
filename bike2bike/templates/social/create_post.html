@@ -1,59 +1,31 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-
-<!-- Importando Editor.js e plugins -->
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@latest"></script>
-
 <div class="max-w-2xl mx-auto mt-10 bg-base-100 p-6 rounded-xl shadow-md">
-  <h1 class="text-2xl font-bold mb-6">✏️ Nova Publicação</h1>
+  <!-- Título da página -->
+  <h1 class="text-2xl font-bold mb-6">✏️ Nova Postagem</h1>
 
-  <form method="post" enctype="multipart/form-data" class="space-y-6">
+  <!-- Formulário para criação de postagem -->
+  <form method="post" enctype="multipart/form-data" class="space-y-4">
     {% csrf_token %}
-    {{ form.as_div|safe }}
-
-    <!-- Editor.js container -->
-    <div id="editorjs" class="border rounded p-4 bg-base-100 shadow-sm"></div>
-
-    <!-- Campo oculto para receber o JSON do Editor.js -->
-    <input type="hidden" name="conteudo" id="conteudo-hidden">
-
-    <div class="flex justify-end gap-2">
-      <a href="{% url 'feed' %}" class="btn btn-outline">Cancelar</a>
-      <button type="submit" class="btn btn-primary" id="submit-btn">Publicar</button>
+    {{ form.non_field_errors }}
+  
+    <div class="form-control">
+      <label class="label">Título</label>
+      {{ form.title }}
     </div>
+  
+    <div class="form-control">
+      <label class="label">Conteúdo</label>
+      {{ form.content }}
+    </div>
+  
+    <div class="form-control">
+      <label class="label">Imagens</label>
+      {{ form.images }}
+    </div>
+  
+    <button type="submit" class="btn btn-primary">Publicar</button>
   </form>
-</div>
-
-<script>
-  // Inicializa o Editor.js com alguns plugins básicos
-  const editor = new EditorJS({
-    holder: 'editorjs',
-    tools: {
-      header: Header,
-      list: List,
-      paragraph: Paragraph
-    }
-  });
-
-  // Captura o formulário e o botão de submit
-  const form = document.querySelector('form');
-  const submitBtn = document.getElementById('submit-btn');
-  const hiddenInput = document.getElementById('conteudo-hidden');
-
-  // Antes de enviar o formulário, salva o conteúdo do editor no campo hidden
-  submitBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    editor.save().then((data) => {
-      hiddenInput.value = JSON.stringify(data);
-      form.submit();
-    }).catch((error) => {
-      console.error("Erro ao salvar conteúdo do Editor.js:", error);
-    });
-  });
-</script>
-
+  
 {% endblock %}

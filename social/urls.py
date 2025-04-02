@@ -1,8 +1,8 @@
 from django.urls import path
 from .views import (
     feed_view,
-    PublicacaoCreateView,
-    PublicacaoDetailView,
+    PostCreateView,
+    PostDetailView,
 )
 from . import views  # Importa views.py para usar feed_more_view como FBV
 
@@ -11,7 +11,7 @@ urlpatterns = [
 
     path('feed/more/', views.feed_more_view, name='feed_more'),
 
-    path('postar/', PublicacaoCreateView.as_view(), name='create_post'),
+    path('nova-postagem/', PostCreateView.as_view(), name='nova_postagem'),
 
-    path('publicacao/<int:pk>/', PublicacaoDetailView.as_view(), name='publicacao_detalhe'),
+    path('publicacao/<int:pk>/', PostDetailView.as_view(), name='publicacao_detalhe'),
 ]

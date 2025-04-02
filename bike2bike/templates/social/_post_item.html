@@ -1,22 +1,36 @@
-<!-- templates/social/_post_item.html -->
 {% load humanize avatar_tags %}
-<div class="card shadow-xl bg-base-100 mb-4">
-  <div class="card-body">
-    <!-- Header com autor e data -->
-    <div class="flex flex-col gap-1">
-      <p class="text-sm text-gray-500">
-        Por {{ post.autor.username }} • {{ post.criado_em|naturaltime }}
-      </p>
-    </div>
 
-    <!-- Conteúdo do post -->
-    {% if post.conteudo %}
+<div class="card shadow-xl bg-base-100 mb-4 overflow-hidden">
+
+  {% if post.images.all %}
+    <div class="carousel w-full">
+      {% for image in post.images.all %}
+        <div id="post{{ post.pk }}-slide{{ forloop.counter }}" class="carousel-item relative w-full">
+          <img src="{{ image.image.url }}" class="w-full object-cover object-center max-h-[450px]" />
+          <div class="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+            <a href="#post{{ post.pk }}-slide{% if forloop.first %}{{ post.images.count }}{% else %}{{ forloop.counter|add:"-1" }}{% endif %}" class="btn btn-circle">❮</a>
+            <a href="#post{{ post.pk }}-slide{% if forloop.last %}1{% else %}{{ forloop.counter|add:"1" }}{% endif %}" class="btn btn-circle">❯</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="card-body">
+    <p class="text-sm text-gray-500">
+      Por {{ post.user.username }} • {{ post.created_at|naturaltime }}
+    </p>
+
+    {% if post.title %}
+      <h2 class="text-xl font-bold mt-2">{{ post.title }}</h2>
+    {% endif %}
+
+    {% if post.content %}
       <div class="prose max-w-none mt-3">
-        {{ post.conteudo|safe }}
+        {{ post.content|safe }}
       </div>
     {% endif %}
 
-    <!-- Botões -->
     <div class="flex justify-between mt-4">
       <div class="space-x-2">
         <button class="btn btn-sm btn-outline">❤️ Curtir</button>

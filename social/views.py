@@ -1,5 +1,7 @@
+# views.py
+
 from django.shortcuts import render, redirect
-from .models import Publicacao
+from .models import Post, PostImage  # Removido o import de Publicacao, agora usamos apenas Post
 from .forms import PostForm
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
@@ -10,15 +12,15 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView
 from django.views.generic import DetailView
 
-
 def feed_view(request):
     """
     Renderiza o feed inicial.
     Recupera todos os posts (ordenados dos mais recentes para os mais antigos)
-    e pagina em blocos de 5 posts.
+    e pagina em blocos de 3 posts.
     """
-    posts = Publicacao.objects.all().order_by('-criado_em')
-    paginator = Paginator(posts, 3)  # 5 posts por página
+    # Alterado de Publicacao para Post e do campo 'criado_em' para 'created_at'
+    posts = Post.objects.all().order_by('-created_at')
+    paginator = Paginator(posts, 3)  # Paginação: 3 posts por página
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
@@ -35,9 +37,10 @@ def feed_more_view(request):
     contendo os posts da página solicitada.
     Retorna um JSON com o HTML renderizado e informações de paginação.
     """
-    # Verifica se é uma requisição AJAX
+    # Verifica se a requisição é AJAX
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        posts = Publicacao.objects.all().order_by('-criado_em')
+        # Alterado de Publicacao para Post e do campo 'criado_em' para 'created_at'
+        posts = Post.objects.all().order_by('-created_at')
         paginator = Paginator(posts, 3)  # Mesmo número de posts por página
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
@@ -53,25 +56,29 @@ def feed_more_view(request):
     else:
         return redirect('feed')
 
-class PublicacaoCreateView(LoginRequiredMixin, CreateView):
-    """
-    View para criar uma nova publicação.
-    Requer que o usuário esteja logado.
-    """
-    model = Publicacao
+
+# views.py (classe PostCreateView)
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
     form_class = PostForm
     template_name = 'social/create_post.html'
     success_url = reverse_lazy('feed')
 
     def form_valid(self, form):
-        form.instance.autor = self.request.user
-        return super().form_valid(form)
+        form.instance.user = self.request.user
+        response = super().form_valid(form)
+
+        images = self.request.FILES.getlist('images')
+        for i, image in enumerate(images[:5]):  # limita a 5 imagens
+            PostImage.objects.create(post=self.object, image=image)
+
+        return response
 
 
-class PublicacaoDetailView(DetailView):
+class PostDetailView(DetailView):
     """
-    Exibe os detalhes de uma publicação.
+    Exibe os detalhes de uma postagem.
     """
-    model = Publicacao
-    template_name = 'social/publicacao_detalhe.html'
-    context_object_name = 'post'
+    model = Post  # Utiliza o modelo Post
+    template_name = 'social/post_detail.html'  # Atualize o template conforme necessário
+    context_object_name = 'post'  # Nome do objeto no contexto
