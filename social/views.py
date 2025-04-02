@@ -1,9 +1,15 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from .models import Publicacao
 from .forms import PostForm
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.http import JsonResponse
+
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.edit import CreateView
+from django.views.generic import DetailView
+
 
 def feed_view(request):
     """
@@ -47,27 +53,25 @@ def feed_more_view(request):
     else:
         return redirect('feed')
 
-def create_post_view(request):
+class PublicacaoCreateView(LoginRequiredMixin, CreateView):
     """
     View para criar uma nova publicação.
-    - Se for POST, processa os dados do formulário.
-    - Se for GET, exibe o formulário vazio.
+    Requer que o usuário esteja logado.
     """
-    if request.method == 'POST':
-        # Cria o formulário com os dados enviados (incluindo arquivos, se houver)
-        form = PostForm(request.POST, request.FILES)
-        if form.is_valid():
-            # Cria a publicação sem salvar imediatamente (para definir o autor)
-            post = form.save(commit=False)
-            post.autor = request.user  # Define o autor como o usuário logado
-            post.save()  # Salva a publicação no banco de dados
-            return redirect('feed')  # Redireciona para o feed após criar o post
-    else:
-        # Cria um formulário vazio para GET
-        form = PostForm()
-    return render(request, 'social/create_post.html', {'form': form})
+    model = Publicacao
+    form_class = PostForm
+    template_name = 'social/create_post.html'
+    success_url = reverse_lazy('feed')
 
-# 🔍 Nova view de detalhe da publicação
-def post_detalhe_view(request, pk):
-    post = get_object_or_404(Publicacao, pk=pk)
-    return render(request, 'social/publicacao_detalhe.html', {'post': post})
+    def form_valid(self, form):
+        form.instance.autor = self.request.user
+        return super().form_valid(form)
+
+
+class PublicacaoDetailView(DetailView):
+    """
+    Exibe os detalhes de uma publicação.
+    """
+    model = Publicacao
+    template_name = 'social/publicacao_detalhe.html'
+    context_object_name = 'post'
