@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-10 bg-base-100 p-6 rounded-xl shadow-md">
+    <h2 class="text-xl font-bold mb-4">Publicação de {{ post.autor.username }}</h2>
+    <p class="mb-4">{{ post.conteudo }}</p>
+
+    {% if post.imagem %}
+        <img src="{{ post.imagem.url }}" class="rounded max-w-md mb-4">
+    {% endif %}
+
+    <p class="text-sm text-gray-500">Publicado em {{ post.criado_em|date:"d/m/Y H:i" }}</p>
+
+    <div class="mt-6">
+        <a href="{% url 'feed' %}" class="btn btn-sm btn-outline">← Voltar ao feed</a>
+    </div>
+</div>
+{% endblock %}
