@@ -1,0 +1,27 @@
+<!-- templates/social/_post_item.html -->
+{% load humanize avatar_tags %}
+<div class="card shadow-xl bg-base-100 mb-4">
+  <div class="card-body">
+    <div class="flex flex-col gap-1">
+      <h2 class="text-xl font-bold">{{ post.titulo }}</h2>
+      <p class="text-sm text-gray-500">
+        Por {{ post.autor.username }} • {{ post.criado_em|naturaltime }}
+      </p>
+    </div>
+
+    <!-- Renderiza o conteúdo formatado do post -->
+    <div class="prose max-w-none mt-3">
+      {{ post.conteudo|safe }}
+    </div>
+
+    <!-- Botões -->
+    <div class="flex justify-between mt-4">
+      <div class="space-x-2">
+        <button class="btn btn-sm btn-outline">❤️ Curtir</button>
+        <a href="{% url 'publicacao_detalhe' post.pk %}" class="btn btn-sm btn-outline">
+          💬 Comentários
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
