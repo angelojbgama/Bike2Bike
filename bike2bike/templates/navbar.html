@@ -13,14 +13,17 @@
         <!-- Menu desktop: Itens posicionados no extremo direito -->
         <div class="hidden md:flex items-center ml-auto gap-2">
             {% if user.is_authenticated %}
+                <!-- 🔗 Botão para o Feed (versão desktop) -->
+                <a href="{% url 'feed' %}" class="btn btn-sm btn-ghost">
+                    📰 Feed
+                </a>
+
                 <!-- Dropdown do usuário (avatar) -->
                 <div class="dropdown dropdown-end">
                     <!-- Avatar do usuário que abre o dropdown -->
                     <label tabindex="0" class="btn btn-ghost btn-circle avatar">
                         <div class="w-10 rounded-full">
-                            <!-- Captura a URL do avatar -->
                             {% avatar user 80 as avatar_url %}
-                            <!-- Exibe a imagem do avatar -->
                             {{ avatar_url }}
                         </div>
                     </label>
@@ -31,7 +34,6 @@
                             <a href="{% url 'profile' %}">Profile</a>
                         </li>
                         <li>
-                            <!-- Aciona o modal de logout -->
                             <label for="logout-modal" class="btn btn-ghost w-full text-left">Logout</label>
                         </li>
                     </ul>
@@ -54,11 +56,14 @@
             </label>
             <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 text-base-content rounded-box w-52">
                 {% if user.is_authenticated %}
+                <!-- 🔗 Botão para o Feed (versão mobile) -->
+                <li>
+                    <a href="{% url 'feed' %}">📰 Feed</a>
+                </li>
                 <li>
                     <a href="{% url 'profile' %}">Profile</a>
                 </li>
                 <li>
-                    <!-- Aciona o modal de logout -->
                     <label for="logout-modal" class="btn btn-ghost w-full text-left">Logout</label>
                 </li>
                 {% else %}
