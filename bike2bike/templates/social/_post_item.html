@@ -2,17 +2,19 @@
 {% load humanize avatar_tags %}
 <div class="card shadow-xl bg-base-100 mb-4">
   <div class="card-body">
+    <!-- Header com autor e data -->
     <div class="flex flex-col gap-1">
-      <h2 class="text-xl font-bold">{{ post.titulo }}</h2>
       <p class="text-sm text-gray-500">
         Por {{ post.autor.username }} • {{ post.criado_em|naturaltime }}
       </p>
     </div>
 
-    <!-- Renderiza o conteúdo formatado do post -->
-    <div class="prose max-w-none mt-3">
-      {{ post.conteudo|safe }}
-    </div>
+    <!-- Conteúdo do post -->
+    {% if post.conteudo %}
+      <div class="prose max-w-none mt-3">
+        {{ post.conteudo|safe }}
+      </div>
+    {% endif %}
 
     <!-- Botões -->
     <div class="flex justify-between mt-4">
