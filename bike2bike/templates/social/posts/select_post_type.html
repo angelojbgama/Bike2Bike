@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto py-8">
+  <h1 class="text-3xl font-bold mb-6 text-center">Selecione o Tipo de Postagem</h1>
+  <div class="flex justify-center space-x-4">
+    <a href="{% url 'nova_postagem_normal' %}" class="btn btn-outline btn-primary">Post Normal</a>
+    <a href="{% url 'nova_postagem_carousel' %}" class="btn btn-outline btn-secondary">Carrossel</a>
+    <a href="{% url 'nova_postagem_poll' %}" class="btn btn-outline btn-info">Enquete</a>
+    <a href="{% url 'nova_postagem_event' %}" class="btn btn-outline btn-warning">Evento</a>
+    <a href="{% url 'nova_postagem_bikeroute' %}" class="btn btn-outline btn-accent">Trajeto de Bike</a>
+  </div>
+</div>
+{% endblock %}
