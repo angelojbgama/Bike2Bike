@@ -1,8 +1,6 @@
 # views.py
 
 from django.shortcuts import render, redirect
-from .models import Post, PostImage  # Removido o import de Publicacao, agora usamos apenas Post
-from .forms import PostForm
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.http import JsonResponse
@@ -11,6 +9,11 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView
 from django.views.generic import DetailView
+
+import json
+from .models import Post, PostImage, Poll, PollOption
+from .forms import CarouselPostForm, PollPostForm, EventPostForm, BikeRoutePostForm, NormalPostForm
+
 
 def feed_view(request):
     """
@@ -56,22 +59,89 @@ def feed_more_view(request):
     else:
         return redirect('feed')
 
+# views.py
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-# views.py (classe PostCreateView)
-class PostCreateView(LoginRequiredMixin, CreateView):
+class PostTypeSelectView(LoginRequiredMixin, TemplateView):
+    template_name = "social/posts/select_post_type.html"
+    
+
+class CarouselPostCreateView(LoginRequiredMixin, CreateView):
     model = Post
-    form_class = PostForm
-    template_name = 'social/create_post.html'
-    success_url = reverse_lazy('feed')
+    form_class = CarouselPostForm
+    template_name = "social/posts/create_carousel_post.html"
+    success_url = reverse_lazy("feed")
 
     def form_valid(self, form):
         form.instance.user = self.request.user
         response = super().form_valid(form)
-
-        images = self.request.FILES.getlist('images')
-        for i, image in enumerate(images[:5]):  # limita a 5 imagens
+        images = self.request.FILES.getlist("images")
+        for image in images:
             PostImage.objects.create(post=self.object, image=image)
+        return response
 
+
+class PollPostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    form_class = PollPostForm
+    template_name = "social/posts/create_poll_post.html"
+    success_url = reverse_lazy("feed")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        response = super().form_valid(form)
+        poll_options_str = form.cleaned_data.get("poll_options")
+        if poll_options_str:
+            poll = Poll.objects.create(
+                post=self.object,
+                question=form.cleaned_data.get("title") or "Enquete"
+            )
+            options = [opt.strip() for opt in poll_options_str.split(",") if opt.strip()]
+            for option_text in options:
+                PollOption.objects.create(poll=poll, option_text=option_text)
+        return response
+class EventPostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    form_class = EventPostForm
+    template_name = "social/posts/create_event_post.html"
+    success_url = reverse_lazy("feed")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+    
+class BikeRoutePostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    form_class = BikeRoutePostForm
+    template_name = "social/posts/create_bikeroute_post.html"
+    success_url = reverse_lazy("feed")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        response = super().form_valid(form)
+        bike_data = form.cleaned_data.get("bike_trajectory_data")
+        if bike_data:
+            try:
+                bike_trajectory = json.loads(bike_data)
+                self.object.bike_trajectory = bike_trajectory
+                self.object.save()
+            except json.JSONDecodeError:
+                pass
+        return response
+
+class NormalPostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    form_class = NormalPostForm
+    template_name = "social/posts/create_normal_post.html"
+    success_url = reverse_lazy("feed")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        response = super().form_valid(form)
+        images = self.request.FILES.getlist("images")
+        for image in images:
+            PostImage.objects.create(post=self.object, image=image)
         return response
 
 
