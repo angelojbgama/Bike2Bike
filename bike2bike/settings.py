@@ -44,7 +44,7 @@ ROOT_URLCONF = 'bike2bike.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'bike2bike/templates')],
+        'DIRS': [BASE_DIR / 'bike2bike/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -56,6 +56,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'bike2bike.wsgi.application'
 
