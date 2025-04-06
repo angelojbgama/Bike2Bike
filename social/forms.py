@@ -12,25 +12,27 @@ from .models import Post
 
 # Formulário para criar um post normal (texto e imagem)
 class NormalPostForm(DaisyUIStyledFormMixin, forms.ModelForm):
-    # Campo extra para upload de múltiplas imagens
     images = forms.FileField(
-        widget=forms.ClearableFileInput(attrs={'multiple': True}),
+        widget=forms.ClearableFileInput(attrs={'multiple': True}),  # Permite selecionar várias imagens
         required=False,
         label="Imagens"
     )
 
     class Meta:
         model = Post
-        # Campos do modelo que serão utilizados
-        fields = ["title", "content", "shared_link", "latitude", "longitude", "visibility"]
-        # field_styles define as classes e os placeholders para cada campo
+        fields = ["title", "content", "visibility"]
         field_styles = {
-            'title': {'classes': 'input input-bordered', 'placeholder': 'Digite o título do post'},
-            'content': {'classes': 'textarea textarea-bordered', 'placeholder': 'Digite o conteúdo do post'},
-            'shared_link': {'classes': 'input input-bordered', 'placeholder': 'URL do link compartilhado'},
-            'latitude': {'classes': 'input input-bordered', 'placeholder': 'Latitude'},
-            'longitude': {'classes': 'input input-bordered', 'placeholder': 'Longitude'},
-            'visibility': {'classes': 'select select-bordered'},
+            'title': {
+                'classes': 'input input-bordered', 
+                'placeholder': 'Digite o título do post'
+            },
+            'content': {
+                'classes': 'textarea textarea-bordered', 
+                'placeholder': 'Digite o conteúdo do post em markdown'
+            },
+            'visibility': {
+                'classes': 'select select-bordered'
+            },
         }
 
 # Formulário para criar um post em formato de carrossel

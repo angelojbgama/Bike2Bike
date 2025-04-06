@@ -132,14 +132,17 @@ class BikeRoutePostCreateView(LoginRequiredMixin, CreateView):
 
 class NormalPostCreateView(LoginRequiredMixin, CreateView):
     model = Post
-    form_class = NormalPostForm
-    template_name = "social/posts/create_normal_post.html"
-    success_url = reverse_lazy("feed")
+    form_class = NormalPostForm  # Utiliza o formulário que criamos especificamente para posts de blog
+    template_name = "social/posts/create_normal_post.html"  # Template para renderizar o formulário
+    success_url = reverse_lazy("feed")  # URL para redirecionar após o post ser criado com sucesso
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        # Salva o formulário e cria o post
         response = super().form_valid(form)
+        # Recupera todas as imagens enviadas via upload (campo de múltiplas imagens)
         images = self.request.FILES.getlist("images")
+        # Para cada imagem, cria um objeto PostImage relacionado ao post
         for image in images:
             PostImage.objects.create(post=self.object, image=image)
         return response
