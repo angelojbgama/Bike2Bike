@@ -1,7 +1,7 @@
 {% load humanize avatar_tags %}
+{% load markdown_extras %} {# Carrega o filtro customizado de markdown #}
 
 <div class="card shadow-xl bg-base-100 mb-4 overflow-hidden">
-
   {% if post.images.all %}
     <div class="carousel w-full">
       {% for image in post.images.all %}
@@ -27,7 +27,8 @@
 
     {% if post.content %}
       <div class="prose max-w-none mt-3">
-        {{ post.content|safe }}
+        {# Converte o markdown do conteúdo para HTML e marca como seguro para renderização #}
+        {{ post.content|markdown|safe }}
       </div>
     {% endif %}
 
@@ -41,3 +42,4 @@
     </div>
   </div>
 </div>
+  
