@@ -5,15 +5,16 @@
 
 <!-- Título do Feed -->
 <h1 class="text-2xl font-bold mb-4">Feed</h1>
+
 <!-- MENU DE AÇÕES -->
 <ul class="menu menu-vertical lg:menu-horizontal bg-base-200 rounded-box mb-6">
   <li>
-    <a href="{% url 'nova_postagem_select' %}" class="tooltip" data-tip="Criar Post">
+    <a href="{% url 'social:nova_postagem_select' %}" class="tooltip" data-tip="Criar Post">
       Criar Post
     </a>
   </li>
   <li>
-    <a href="{% url 'feed' %}" class="tooltip" data-tip="Ver Feed">
+    <a href="{% url 'social:feed' %}" class="tooltip" data-tip="Ver Feed">
       Feed
     </a>
   </li>
@@ -25,7 +26,8 @@
 </ul>
 
 <!-- Container dos posts -->
-<div id="feed">
+<div id="feed">  
+  {# O id definido aqui é 'feed' e deve ser o mesmo utilizado no JavaScript #}
   {% for post in page_obj %}
     {% include 'social/_post_item.html' with post=post %}
   {% endfor %}
@@ -43,31 +45,32 @@
   let isLoading = false;
   let hasNext = {{ page_obj.has_next|yesno:"true,false" }};
   
-  // Função para carregar mais posts via AJAX com um delay aleatório entre 3 e 5 segundos
+  // Função para carregar mais posts via AJAX com um delay aleatório
+  // (aqui o comentário diz entre 3 e 5 segundos, mas o cálculo atual gera entre 1 e 2 segundos)
   function loadMorePosts() {
     if (!hasNext || isLoading) return;
     isLoading = true;
     currentPage += 1;
     document.getElementById('loading').style.display = 'block';
     
-    // Gera um delay aleatório entre 3000 e 5000 milissegundos
+    // Gera um delay aleatório entre 1000 e 2000 milissegundos
     const delay = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
     
     setTimeout(function() {
-      fetch("{% url 'feed_more' %}?page=" + currentPage, {
+      fetch("{% url 'social:feed_more' %}?page=" + currentPage, {
         headers: {
           'X-Requested-With': 'XMLHttpRequest'
         }
       })
       .then(response => response.json())
       .then(data => {
-        // Insere o HTML dos novos posts no final do container
+        // INSERÇÃO CORRETA: usa o id 'feed' para inserir o HTML no contêiner correto
         document.getElementById('feed').insertAdjacentHTML('beforeend', data.html);
         hasNext = data.has_next;
         isLoading = false;
         document.getElementById('loading').style.display = 'none';
         
-        // Se a altura do documento ainda for menor que a janela, tenta carregar mais posts automaticamente
+        // Se o conteúdo da página não preencher a tela, tenta carregar mais posts automaticamente
         if (hasNext && document.body.offsetHeight < window.innerHeight + 100) {
           loadMorePosts();
         }
@@ -87,7 +90,7 @@
     }
   });
   
-  // Após o carregamento da página, se o conteúdo não preencher a tela, tenta carregar mais posts automaticamente
+  // Se, após o carregamento da página, o conteúdo não preencher a tela, carrega mais posts
   window.addEventListener('load', function() {
     if (hasNext && document.body.offsetHeight < window.innerHeight + 100) {
       loadMorePosts();
