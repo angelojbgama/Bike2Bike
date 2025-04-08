@@ -12,7 +12,7 @@
     <p class="text-sm text-gray-500">Publicado em {{ post.criado_em|date:"d/m/Y H:i" }}</p>
 
     <div class="mt-6">
-        <a href="{% url 'feed' %}" class="btn btn-sm btn-outline">← Voltar ao feed</a>
+        <a href="{% url 'social:feed' %}" class="btn btn-sm btn-outline">← Voltar ao feed</a>
     </div>
 </div>
 {% endblock %}
