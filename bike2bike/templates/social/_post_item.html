@@ -1,7 +1,9 @@
 {% load humanize avatar_tags %}
-{% load markdown_extras %} {# Carrega o filtro customizado de markdown #}
+{% load markdown_extras %} {# Filtro customizado para markdown #}
 
 <div class="card shadow-xl bg-base-100 mb-4 overflow-hidden">
+  
+  {# Carousel de imagens do post #}
   {% if post.images.all %}
     <div class="carousel w-full">
       {% for image in post.images.all %}
@@ -17,9 +19,21 @@
   {% endif %}
 
   <div class="card-body">
-    <p class="text-sm text-gray-500">
-      Por {{ post.user.username }} • {{ post.created_at|naturaltime }}
-    </p>
+    
+    <div class="flex justify-between items-start">
+      <p class="text-sm text-gray-500">
+        Por {{ post.user.username }} • {{ post.created_at|naturaltime }}
+      </p>
+
+      {# Ícone de visibilidade com tooltip #}
+      <div class="tooltip tooltip-left ml-2" data-tip="{% if post.visibility == 'public' %}Público{% elif post.visibility == 'friends' %}Apenas amigos{% else %}Privado{% endif %}">
+        <i class="fas 
+          {% if post.visibility == 'public' %}fa-globe text-primary
+          {% elif post.visibility == 'friends' %}fa-user-friends text-success
+          {% else %}fa-lock text-error
+          {% endif %}"></i>
+      </div>
+    </div>
 
     {% if post.title %}
       <h2 class="text-xl font-bold mt-2">{{ post.title }}</h2>
@@ -27,7 +41,6 @@
 
     {% if post.content %}
       <div class="prose max-w-none mt-3">
-        {# Converte o markdown do conteúdo para HTML e marca como seguro para renderização #}
         {{ post.content|markdown|safe }}
       </div>
     {% endif %}
@@ -35,11 +48,11 @@
     <div class="flex justify-between mt-4">
       <div class="space-x-2">
         <button class="btn btn-sm btn-outline">❤️ Curtir</button>
-        <a href="{% url 'publicacao_detalhe' post.pk %}" class="btn btn-sm btn-outline">
+        <a href="{% url 'social:publicacao_detalhe' post.pk %}" class="btn btn-sm btn-outline">
           💬 Comentários
         </a>
       </div>
     </div>
+
   </div>
 </div>
-  
