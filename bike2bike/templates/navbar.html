@@ -4,17 +4,27 @@
     <div class="container mx-auto flex justify-between items-center">
         <!-- Lado esquerdo: Logo e nome da rede social -->
         <div class="flex items-center gap-3">
+            <!-- Ícone da bicicleta -->
             <img src="https://img.icons8.com/ios-filled/50/ffffff/bicycle.png" width="30" height="30" alt="Bike Icon">
-            <a href="{% url 'homepage' %}" class="text-xl font-bold hover:text-secondary transition">
-                Bike2Bike
-            </a>
+        
+            <!-- Verifica se o usuário está logado para direcionar para a URL correta -->
+            {% if user.is_authenticated %}
+                <a href="{% url 'social:feed' %}" class="text-xl font-bold hover:text-secondary transition">
+                    Bike2Bike
+                </a>
+            {% else %}
+                <a href="{% url 'homepage' %}" class="text-xl font-bold hover:text-secondary transition">
+                    Bike2Bike
+                </a>
+            {% endif %}
         </div>
+        
 
         <!-- Menu desktop: Itens posicionados no extremo direito -->
         <div class="hidden md:flex items-center ml-auto gap-2">
             {% if user.is_authenticated %}
                 <!-- 🔗 Botão para o Feed (versão desktop) -->
-                <a href="{% url 'feed' %}" class="btn btn-sm btn-ghost">
+                <a href="{% url 'social:feed' %}" class="btn btn-sm btn-ghost">
                     📰 Feed
                 </a>
 
@@ -58,7 +68,7 @@
                 {% if user.is_authenticated %}
                 <!-- 🔗 Botão para o Feed (versão mobile) -->
                 <li>
-                    <a href="{% url 'feed' %}">📰 Feed</a>
+                    <a href="{% url 'social:feed' %}">📰 Feed</a>
                 </li>
                 <li>
                     <a href="{% url 'profile' %}">Profile</a>
