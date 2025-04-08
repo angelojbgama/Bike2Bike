@@ -4,11 +4,17 @@ from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.http import JsonResponse
+from django.views.generic import TemplateView
 
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView
 from django.views.generic import DetailView
+
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+import uuid
 
 import json
 from .models import Post, PostImage, Poll, PollOption
@@ -57,11 +63,7 @@ def feed_more_view(request):
         }
         return JsonResponse(data)
     else:
-        return redirect('feed')
-
-# views.py
-from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
+        return redirect('social:feed')
 
 class PostTypeSelectView(LoginRequiredMixin, TemplateView):
     template_name = "social/posts/select_post_type.html"
@@ -71,7 +73,7 @@ class CarouselPostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = CarouselPostForm
     template_name = "social/posts/create_carousel_post.html"
-    success_url = reverse_lazy("feed")
+    success_url = reverse_lazy("social:feed")
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -105,7 +107,7 @@ class EventPostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = EventPostForm
     template_name = "social/posts/create_event_post.html"
-    success_url = reverse_lazy("feed")
+    success_url = reverse_lazy("social:feed")
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -115,7 +117,7 @@ class BikeRoutePostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = BikeRoutePostForm
     template_name = "social/posts/create_bikeroute_post.html"
-    success_url = reverse_lazy("feed")
+    success_url = reverse_lazy("social:feed")
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -134,10 +136,12 @@ class NormalPostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = NormalPostForm  # Utiliza o formulário que criamos especificamente para posts de blog
     template_name = "social/posts/create_normal_post.html"  # Template para renderizar o formulário
-    success_url = reverse_lazy("feed")  # URL para redirecionar após o post ser criado com sucesso
+    success_url = reverse_lazy("social:feed")  # URL para redirecionar após o post ser criado com sucesso
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        form.instance.visibility = self.request.POST.get("visibility", "public")
+
         # Salva o formulário e cria o post
         response = super().form_valid(form)
         # Recupera todas as imagens enviadas via upload (campo de múltiplas imagens)
@@ -155,3 +159,15 @@ class PostDetailView(DetailView):
     model = Post  # Utiliza o modelo Post
     template_name = 'social/post_detail.html'  # Atualize o template conforme necessário
     context_object_name = 'post'  # Nome do objeto no contexto
+
+
+@csrf_exempt
+def upload_image(request):
+    if request.method == 'POST' and request.FILES.get('image'):
+        image = request.FILES['image']
+        filename = f"uploads/{uuid.uuid4()}_{image.name}"
+        saved_path = default_storage.save(filename, ContentFile(image.read()))
+        image_url = default_storage.url(saved_path)
+
+        return JsonResponse({'success': True, 'url': image_url})
+    return JsonResponse({'success': False}, status=400)

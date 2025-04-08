@@ -1,51 +1,116 @@
-{# social/posts/create_blog_post.html #}
-{% extends "base.html" %}
-{% load static %}
-
-{% block extra_head %}
-  {# Insere o CSS do EasyMDE no head da página #}
-  <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
-{% endblock %}
-
-{% block content %}
+{# social/posts/create_blog_post.html #} {% extends "base.html" %} {% load
+static %} {% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css" />
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+/>
+{% endblock %} {% block content %}
 <div class="container mx-auto py-8 max-w-2xl">
   <h1 class="text-2xl font-bold mb-4">Criar Post no Estilo Blog</h1>
+
   <form method="post" enctype="multipart/form-data" class="space-y-6">
     {% csrf_token %}
-    {# Renderiza os campos do formulário com os estilos definidos pelo mixin #}
-    {{ form.as_div|safe }}
-    <div class="text-center">
+
+    <!-- Campo: Título -->
+    <div class="form-control">
+      <label class="label">
+        <span class="label-text font-medium">Título</span>
+      </label>
+      {{ form.title }} {% if form.title.errors %}
+      <label class="label">
+        <span class="label-text-alt text-error">{{ form.title.errors }}</span>
+      </label>
+      {% endif %}
+    </div>
+
+    <!-- Campo: Upload de múltiplas imagens (Imagens do post) -->
+    <div class="form-control">
+      <label class="label">
+        <span class="label-text font-medium">Imagens</span>
+      </label>
+      <div class="flex items-center space-x-2">{{ form.images }}</div>
+      {% if form.images.errors %}
+      <label class="label">
+        <span class="label-text-alt text-error">{{ form.images.errors }}</span>
+      </label>
+      {% endif %}
+    </div>
+
+    <!-- Campo: Visibilidade com radios coloridos + tooltip -->
+    <div class="form-control">
+      <label class="label">
+        <span class="label-text font-medium">Visibilidade</span>
+      </label>
+      <div class="flex justify-center gap-6">
+        <!-- Público -->
+        <div class="tooltip" data-tip="Público">
+          <label>
+            <input
+              type="radio"
+              name="visibility"
+              value="public"
+              class="radio radio-primary"
+              checked
+            />
+          </label>
+        </div>
+        <!-- Amigos -->
+        <div class="tooltip" data-tip="Amigos">
+          <label>
+            <input
+              type="radio"
+              name="visibility"
+              value="friends"
+              class="radio radio-success"
+            />
+          </label>
+        </div>
+        <!-- Privado -->
+        <div class="tooltip" data-tip="Privado">
+          <label>
+            <input
+              type="radio"
+              name="visibility"
+              value="private"
+              class="radio radio-error"
+            />
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Campo: Conteúdo com EasyMDE -->
+    <div class="form-control">
+      <label class="label">
+        <span class="label-text font-medium">Conteúdo</span>
+      </label>
+      {{ form.content }} {% if form.content.errors %}
+      <label class="label">
+        <span class="label-text-alt text-error">{{ form.content.errors }}</span>
+      </label>
+      {% endif %}
+    </div>
+
+    <!-- Botão de envio -->
+    <div class="text-center pt-4">
       <button type="submit" class="btn btn-primary">Criar Post</button>
     </div>
   </form>
 </div>
-{% endblock %}
-
-{% block extra_scripts %}
-  {# Insere o JS do EasyMDE a partir do CDN #}
-  <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
-  <script>
-    // Aguarda o carregamento do DOM para inicializar o EasyMDE
-    window.onload = function() {
-      console.log('Window loaded. Inicializando EasyMDE...');
-      // Seleciona o textarea com o atributo name="content"
-      var textarea = document.querySelector('textarea[name="content"]');
-      if (textarea) {
-        console.log('Textarea encontrado:', textarea);
-        // Cria uma instância do EasyMDE para transformar o textarea em editor markdown
-        var easyMDE = new EasyMDE({
-          element: textarea,
-          spellChecker: false,  // Desativa o corretor ortográfico para simplificar
-          toolbar: [
-            "bold", "italic", "heading", "|", "quote", 
-            "unordered-list", "ordered-list", "|", "link", 
-            "|", "preview"
-          ]
-        });
-        console.log('EasyMDE inicializado com sucesso.');
-      } else {
-        console.log('Textarea com name "content" não foi encontrado.');
-      }
-    };
-  </script>
+{% endblock %} {% block extra_scripts %}
+<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+<script>
+  window.onload = function () {
+    const textarea = document.querySelector('textarea[name="content"]');
+    if (textarea) {
+      const easyMDE = new EasyMDE({
+        element: textarea,
+        spellChecker: false,
+        placeholder: "Escreva seu post aqui...",
+        toolbar: ["bold", "italic", "|", "preview"],
+      });
+    }
+  };
+</script>
 {% endblock %}

@@ -11,28 +11,33 @@ from bike2bike.mixins.DaisyUIFormMixin import DaisyUIStyledFormMixin
 from .models import Post
 
 # Formulário para criar um post normal (texto e imagem)
+from django import forms
+from django.utils.safestring import mark_safe
+from .models import Post
+
 class NormalPostForm(DaisyUIStyledFormMixin, forms.ModelForm):
     images = forms.FileField(
-        widget=forms.ClearableFileInput(attrs={'multiple': True}),  # Permite selecionar várias imagens
+        widget=forms.ClearableFileInput(attrs={'multiple': True}),
         required=False,
         label="Imagens"
     )
 
     class Meta:
         model = Post
-        fields = ["title", "content", "visibility"]
+        fields = ["title", "images", "content"]  # ← Removido "visibility"
         field_styles = {
             'title': {
-                'classes': 'input input-bordered', 
+                'classes': 'input input-bordered w-full',
                 'placeholder': 'Digite o título do post'
             },
+            'images': {
+                'classes': 'file-input file-input-bordered w-full',
+                'show_label': True
+            },
             'content': {
-                'classes': 'textarea textarea-bordered', 
+                'classes': 'textarea textarea-bordered',
                 'placeholder': 'Digite o conteúdo do post em markdown'
-            },
-            'visibility': {
-                'classes': 'select select-bordered'
-            },
+            }
         }
 
 # Formulário para criar um post em formato de carrossel
