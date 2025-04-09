@@ -134,21 +134,28 @@ class BikeRoutePostCreateView(LoginRequiredMixin, CreateView):
 
 class NormalPostCreateView(LoginRequiredMixin, CreateView):
     model = Post
-    form_class = NormalPostForm  # Utiliza o formulário que criamos especificamente para posts de blog
-    template_name = "social/posts/create_normal_post.html"  # Template para renderizar o formulário
-    success_url = reverse_lazy("social:feed")  # URL para redirecionar após o post ser criado com sucesso
+    form_class = NormalPostForm
+    template_name = "social/posts/create_normal_post.html"
+    success_url = reverse_lazy("social:feed")
 
     def form_valid(self, form):
         form.instance.user = self.request.user
         form.instance.visibility = self.request.POST.get("visibility", "public")
-
-        # Salva o formulário e cria o post
-        response = super().form_valid(form)
-        # Recupera todas as imagens enviadas via upload (campo de múltiplas imagens)
         images = self.request.FILES.getlist("images")
-        # Para cada imagem, cria um objeto PostImage relacionado ao post
-        for image in images:
-            PostImage.objects.create(post=self.object, image=image)
+        
+        if len(images) > 1:
+            form.add_error(None, "Apenas uma imagem pode ser enviada.")
+            return self.form_invalid(form)
+        max_file_size = 2 * 1024 * 1024  # 2MB convertido para bytes
+        if images:
+            image = images[0]
+            if image.size > max_file_size:
+                # Adiciona um erro específico ao campo 'images'
+                form.add_error("images", "Imagem excede o tamanho máximo permitido (2MB).")
+                return self.form_invalid(form)
+        response = super().form_valid(form)
+        if images:
+            PostImage.objects.create(post=self.object, image=images[0])
         return response
 
 
