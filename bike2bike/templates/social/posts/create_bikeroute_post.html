@@ -2,27 +2,53 @@
 {% load static %}
 
 {% block extra_head %}
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-        integrity="sha512-xodZBNTC5n17Xt2prXb4f3CkC3hKp3c+Y1qK/TrAXmBv61dJUbZh85f2zKc5Pyc1G6fIY6S1x0z3/rT+4c+g=="
-        crossorigin=""/>
+  <!-- Carrega o CSS do Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" crossorigin=""/>
+  <!-- Carrega o CSS do Leaflet Routing Machine -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
   <style>
+    /* Define a altura do mapa para que ele seja renderizado */
     #map { height: 400px; }
   </style>
 {% endblock %}
 
-
 {% block content %}
 <div class="container mx-auto py-8 max-w-2xl">
   <h1 class="text-2xl font-bold mb-4">Criar Post de Trajeto de Bike</h1>
-  <form method="post" enctype="multipart/form-data" class="space-y-6">
+  <form method="post">
     {% csrf_token %}
-    <!-- Renderiza os campos do formulário com os estilos definidos pelo mixin DaisyUI -->
-    {{ form.as_div|safe }}
     
-    <!-- Container do mapa para que o usuário desenhe seu trajeto -->
+    <!-- Campo: Título -->
+    <div class="form-control mb-4">
+      <label class="label">
+        <span class="label-text font-medium">Título</span>
+      </label>
+      {{ form.title }}
+      {% if form.title.errors %}
+      <span class="text-error">{{ form.title.errors }}</span>
+      {% endif %}
+    </div>
+    
+    <!-- Campo oculto para armazenar a trajetória gerada automaticamente -->
+    {{ form.bike_trajectory_data }}
+
+    <!-- Botão para usar as coordenadas do dispositivo -->
+    <div class="mb-4 text-right">
+      <button id="locate-btn" class="btn btn-sm btn-primary" type="button">
+        Usar minhas coordenadas
+      </button>
+    </div>
+
+    <!-- Instrução para o usuário -->
+    <div class="mb-2">
+      <p class="text-sm text-gray-600">
+        Clique em dois pontos no mapa para definir a origem e o destino da rota (preferindo as ciclovias).
+      </p>
+    </div>
+    
+    <!-- Container do mapa -->
     <div id="map" class="rounded-lg shadow-lg mb-4"></div>
-    
+
     <div class="text-center">
       <button type="submit" class="btn btn-primary">Criar Post</button>
     </div>
@@ -31,28 +57,89 @@
 {% endblock %}
 
 {% block extra_scripts %}
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-          integrity="sha512-gZwIG9x3wUXgL4V+IXwKZ8s1QkLfnYNEo+gEi9CkQ7I+gq2Og8M02yu4fYlgKp+3T+jYv+oL3+o1/6+7GkGZw=="
-          crossorigin=""></script>
+  <!-- Carrega o JavaScript do Leaflet -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" crossorigin=""></script>
+  <!-- Carrega o JavaScript do Leaflet Routing Machine -->
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
+      // Inicializa o mapa com centro em [0, 0] e zoom 2
       var map = L.map('map').setView([0, 0], 2);
+      
+      // Adiciona a camada de tiles do OpenStreetMap
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; OpenStreetMap'
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
       }).addTo(map);
-      var routePoints = [];
-      var polyline = L.polyline(routePoints, { color: 'blue' }).addTo(map);
+      
+      // Variáveis para armazenar os pontos clicados e o controle de rota
+      var waypoints = [];
+      var routeControl = null;
+      
+      // Função para adicionar um marcador no mapa para cada ponto clicado
+      function addMarker(latlng) {
+        L.marker(latlng).addTo(map);
+      }
+      
+      // Evento de clique no mapa: registra até dois pontos (origem e destino)
       map.on('click', function(e) {
-          var lat = e.latlng.lat;
-          var lng = e.latlng.lng;
-          routePoints.push([lat, lng]);
-          polyline.setLatLngs(routePoints);
-          var hiddenInput = document.querySelector('[name="bike_trajectory_data"]');
-          if (hiddenInput) {
-              hiddenInput.value = JSON.stringify(routePoints);
+        if (waypoints.length >= 2) return; // Só permite dois pontos
+        var latlng = e.latlng;
+        waypoints.push(latlng);
+        addMarker(latlng);
+        
+        // Se dois pontos foram selecionados, calcula a rota
+        if (waypoints.length === 2) {
+          // Se existir uma rota anterior, remova-a
+          if (routeControl !== null) {
+            map.removeControl(routeControl);
           }
+          // Cria o controle de rota usando o serviço OSRM com o perfil "cycling"
+          routeControl = L.Routing.control({
+            waypoints: waypoints,
+            router: new L.Routing.OSRMv1({
+              serviceUrl: 'https://router.project-osrm.org/route/v1',
+              profile: 'cycling' // Usa o perfil para rotas de bicicleta
+            }),
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            show: false,  // Não exibe o painel de rotas
+            createMarker: function(i, wp) {
+              return L.marker(wp.latLng);
+            }
+          }).addTo(map);
+          
+          // Ao encontrar a rota, salva as coordenadas no campo oculto do formulário
+          routeControl.on('routesfound', function(e) {
+            var route = e.routes[0];
+            var hiddenInput = document.querySelector('[name="bike_trajectory_data"]');
+            if (hiddenInput) {
+              hiddenInput.value = JSON.stringify(route.coordinates);
+            }
+          });
+        }
+      });
+      
+      // Funcionalidade do botão para usar as coordenadas do dispositivo
+      var locateBtn = document.getElementById("locate-btn");
+      locateBtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        // Centraliza o mapa na localização do usuário
+        map.locate({setView: true, maxZoom: 16});
+      });
+      
+      // Quando a localização é encontrada, adiciona um marcador e um círculo de precisão
+      map.on("locationfound", function(e) {
+        var radius = e.accuracy; // Precisão em metros
+        L.marker(e.latlng).addTo(map)
+          .bindPopup("Você está aqui.").openPopup();
+        L.circle(e.latlng, radius).addTo(map);
+      });
+      
+      // Em caso de erro na localização, exibe um alerta
+      map.on("locationerror", function(e) {
+        alert("Não foi possível localizar sua posição: " + e.message);
       });
     });
   </script>
