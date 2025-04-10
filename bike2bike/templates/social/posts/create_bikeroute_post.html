@@ -32,10 +32,13 @@
     <!-- Campo oculto para armazenar a trajetória gerada automaticamente -->
     {{ form.bike_trajectory_data }}
 
-    <!-- Botão para usar as coordenadas do dispositivo -->
-    <div class="mb-4 text-right">
+    <!-- Botões para usar as coordenadas do dispositivo e limpar o mapa -->
+    <div class="mb-4 flex justify-end space-x-2">
       <button id="locate-btn" class="btn btn-sm btn-primary" type="button">
         Usar minhas coordenadas
+      </button>
+      <button id="clear-btn" class="btn btn-sm btn-secondary" type="button">
+        Limpar Mapa
       </button>
     </div>
 
@@ -48,6 +51,9 @@
     
     <!-- Container do mapa -->
     <div id="map" class="rounded-lg shadow-lg mb-4"></div>
+    
+    <!-- Div para exibir detalhes do trajeto, como a quilometragem -->
+    <div id="route-details" class="mb-4 text-center text-sm text-gray-600"></div>
 
     <div class="text-center">
       <button type="submit" class="btn btn-primary">Criar Post</button>
@@ -72,23 +78,25 @@
         attribution: '&copy; OpenStreetMap'
       }).addTo(map);
       
-      // Variáveis para armazenar os pontos clicados e o controle de rota
+      // Variáveis de estado para armazenar pontos, marcadores e o controle de rota
       var waypoints = [];
+      var markers = []; // Armazena os marcadores adicionados no mapa
       var routeControl = null;
       
-      // Função para adicionar um marcador no mapa para cada ponto clicado
+      // Função para adicionar um marcador e armazená-lo no array "markers"
       function addMarker(latlng) {
-        L.marker(latlng).addTo(map);
+        var marker = L.marker(latlng).addTo(map);
+        markers.push(marker);
       }
       
       // Evento de clique no mapa: registra até dois pontos (origem e destino)
       map.on('click', function(e) {
-        if (waypoints.length >= 2) return; // Só permite dois pontos
+        if (waypoints.length >= 2) return; // Limita a dois pontos
         var latlng = e.latlng;
         waypoints.push(latlng);
         addMarker(latlng);
         
-        // Se dois pontos foram selecionados, calcula a rota
+        // Se dois pontos foram selecionados, calcula a rota automaticamente
         if (waypoints.length === 2) {
           // Se existir uma rota anterior, remova-a
           if (routeControl !== null) {
@@ -99,39 +107,46 @@
             waypoints: waypoints,
             router: new L.Routing.OSRMv1({
               serviceUrl: 'https://router.project-osrm.org/route/v1',
-              profile: 'cycling' // Usa o perfil para rotas de bicicleta
+              profile: 'cycling' // Define o perfil para rotas de bicicleta
             }),
             addWaypoints: false,
             draggableWaypoints: false,
             fitSelectedRoutes: true,
-            show: false,  // Não exibe o painel de rotas
+            show: false,  // Oculta o painel de rotas
             createMarker: function(i, wp) {
               return L.marker(wp.latLng);
             }
           }).addTo(map);
           
-          // Ao encontrar a rota, salva as coordenadas no campo oculto do formulário
+          // Quando a rota é encontrada, salva as coordenadas e mostra detalhes como distância
           routeControl.on('routesfound', function(e) {
             var route = e.routes[0];
             var hiddenInput = document.querySelector('[name="bike_trajectory_data"]');
             if (hiddenInput) {
               hiddenInput.value = JSON.stringify(route.coordinates);
             }
+            if (route.summary) {
+              // Converte a distância de metros para quilômetros, formatada com 2 casas decimais
+              var km = (route.summary.totalDistance / 1000).toFixed(2);
+              var detailsDiv = document.getElementById("route-details");
+              if (detailsDiv) {
+                detailsDiv.innerHTML = "<p>Distância: " + km + " km</p>";
+              }
+            }
           });
         }
       });
       
-      // Funcionalidade do botão para usar as coordenadas do dispositivo
+      // Funcionalidade do botão "Usar minhas coordenadas"
       var locateBtn = document.getElementById("locate-btn");
       locateBtn.addEventListener("click", function(e) {
         e.preventDefault();
-        // Centraliza o mapa na localização do usuário
         map.locate({setView: true, maxZoom: 16});
       });
       
-      // Quando a localização é encontrada, adiciona um marcador e um círculo de precisão
+      // Ao encontrar a localização, adiciona um marcador e um círculo representando a precisão
       map.on("locationfound", function(e) {
-        var radius = e.accuracy; // Precisão em metros
+        var radius = e.accuracy;
         L.marker(e.latlng).addTo(map)
           .bindPopup("Você está aqui.").openPopup();
         L.circle(e.latlng, radius).addTo(map);
@@ -140,6 +155,37 @@
       // Em caso de erro na localização, exibe um alerta
       map.on("locationerror", function(e) {
         alert("Não foi possível localizar sua posição: " + e.message);
+      });
+      
+      // Funcionalidade do botão "Limpar Mapa" para reiniciar o processo
+      var clearBtn = document.getElementById("clear-btn");
+      clearBtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        
+        // Remove todos os marcadores adicionados
+        markers.forEach(function(marker) {
+          map.removeLayer(marker);
+        });
+        markers = [];
+        
+        // Remove o controle de rota, se houver, e reseta a variável
+        if (routeControl !== null) {
+          map.removeControl(routeControl);
+          routeControl = null;
+        }
+        
+        // Limpa os waypoints e a área de detalhes da rota
+        waypoints = [];
+        var detailsDiv = document.getElementById("route-details");
+        if (detailsDiv) {
+          detailsDiv.innerHTML = "";
+        }
+        
+        // Limpa o valor do campo oculto (trajetória)
+        var hiddenInput = document.querySelector('[name="bike_trajectory_data"]');
+        if (hiddenInput) {
+          hiddenInput.value = "";
+        }
       });
     });
   </script>
