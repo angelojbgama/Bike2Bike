@@ -1,15 +1,18 @@
-{# social/posts/create_blog_post.html #} {% extends "base.html" %} {% load
-static %} {% block extra_head %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<!-- Inclusão dos estilos para o EasyMDE e Font Awesome -->
 <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css" />
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-/>
-{% endblock %} {% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+{% endblock %}
+
+{% block content %}
 <div class="container mx-auto py-8 max-w-2xl">
   <h1 class="text-2xl font-bold mb-4">Criar Post no Estilo Blog</h1>
 
-  <form method="post" enctype="multipart/form-data" class="space-y-6">
+  <!-- Removido o atributo enctype pois não há mais upload de arquivos -->
+  <form method="post" class="space-y-6">
     {% csrf_token %}
 
     <!-- Campo: Título -->
@@ -17,105 +20,21 @@ static %} {% block extra_head %}
       <label class="label">
         <span class="label-text font-medium">Título</span>
       </label>
-      {{ form.title }} {% if form.title.errors %}
+      {{ form.title }}
+      {% if form.title.errors %}
       <label class="label">
         <span class="label-text-alt text-error">{{ form.title.errors }}</span>
       </label>
       {% endif %}
     </div>
 
-    <!-- Campo: Upload de múltiplas imagens (Imagens do post) -->
-    <div class="form-control">
-      <label class="label">
-        <span class="label-text font-medium">Imagens</span>
-      </label>
-      <div class="flex items-center space-x-2">{{ form.images }}</div>
-      {% if form.images.errors %}
-      <label class="label">
-        <span class="label-text-alt text-error">{{ form.images.errors }}</span>
-      </label>
-      {% endif %}
-    </div>
-
-<!-- Campo: Visibilidade com sinalização mais forte e alinhado à direita -->
-<!-- Campo: Visibilidade em formato dropdown -->
-<div class="form-control">
-  <div class="flex items-center justify-between">
-    <label class="label py-1">
-      <span class="label-text font-medium">Visibilidade</span>
-    </label>
-    
-    <div class="dropdown dropdown-end">
-      <!-- Botão do dropdown que mostra a opção selecionada -->
-      <div tabindex="0" role="button" class="btn btn-sm btn-ghost px-2 h-8 flex items-center gap-1.5">
-        <!-- Ícones condicionais baseados na seleção atual (inicialmente "Público") -->
-        <div id="selected-visibility-icon" class="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-content">
-          <i class="fas fa-globe text-xs"></i>
-        </div>
-        <span id="selected-visibility-text" class="text-xs font-medium">Público</span>
-        <i class="fas fa-chevron-down text-xs ml-0.5"></i>
-      </div>
-      
-      <!-- Conteúdo do dropdown -->
-      <div tabindex="0" class="dropdown-content z-[1] menu p-1 shadow bg-base-100 rounded-box w-40">
-        <div class="flex flex-col gap-1">
-          <!-- Público -->
-          <label class="flex items-center gap-2 p-2 hover:bg-base-200 rounded-md cursor-pointer" onclick="updateVisibility('public', 'Público', 'fa-globe', 'bg-primary')">
-            <input
-              type="radio"
-              name="visibility"
-              value="public"
-              class="hidden peer"
-              checked
-            />
-            <div class="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-content">
-              <i class="fas fa-globe text-xs"></i>
-            </div>
-            <span class="text-xs">Público</span>
-            <i class="fas fa-check ml-auto opacity-0" id="check-public"></i>
-          </label>
-          
-          <!-- Amigos -->
-          <label class="flex items-center gap-2 p-2 hover:bg-base-200 rounded-md cursor-pointer" onclick="updateVisibility('friends', 'Amigos', 'fa-user-friends', 'bg-success')">
-            <input
-              type="radio"
-              name="visibility"
-              value="friends"
-              class="hidden peer"
-            />
-            <div class="flex items-center justify-center w-6 h-6 rounded-full bg-success text-success-content">
-              <i class="fas fa-user-friends text-xs"></i>
-            </div>
-            <span class="text-xs">Amigos</span>
-            <i class="fas fa-check ml-auto opacity-0" id="check-friends"></i>
-          </label>
-          
-          <!-- Privado -->
-          <label class="flex items-center gap-2 p-2 hover:bg-base-200 rounded-md cursor-pointer" onclick="updateVisibility('private', 'Privado', 'fa-lock', 'bg-error')">
-            <input
-              type="radio"
-              name="visibility"
-              value="private"
-              class="hidden peer"
-            />
-            <div class="flex items-center justify-center w-6 h-6 rounded-full bg-error text-error-content">
-              <i class="fas fa-lock text-xs"></i>
-            </div>
-            <span class="text-xs">Privado</span>
-            <i class="fas fa-check ml-auto opacity-0" id="check-private"></i>
-          </label>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
     <!-- Campo: Conteúdo com EasyMDE -->
     <div class="form-control">
       <label class="label">
         <span class="label-text font-medium">Conteúdo</span>
       </label>
-      {{ form.content }} {% if form.content.errors %}
+      {{ form.content }}
+      {% if form.content.errors %}
       <label class="label">
         <span class="label-text-alt text-error">{{ form.content.errors }}</span>
       </label>
@@ -128,9 +47,13 @@ static %} {% block extra_head %}
     </div>
   </form>
 </div>
-{% endblock %} {% block extra_scripts %}
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Inclusão do script do EasyMDE -->
 <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 <script>
+  // Inicializa o EasyMDE ao carregar a página, aplicando o editor no campo 'content'
   window.onload = function () {
     const textarea = document.querySelector('textarea[name="content"]');
     if (textarea) {
@@ -142,56 +65,5 @@ static %} {% block extra_head %}
       });
     }
   };
-</script>
-<!-- Script para atualizar a visibilidade -->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar o estado
-    document.getElementById('check-public').classList.remove('opacity-0');
-    
-    // Verificar se há um valor salvo
-    const savedVisibility = localStorage.getItem('selectedVisibility');
-    if (savedVisibility) {
-      const option = JSON.parse(savedVisibility);
-      updateVisibility(option.value, option.text, option.icon, option.bgClass);
-      
-      // Marcar o radio button correto
-      document.querySelector(`input[name="visibility"][value="${option.value}"]`).checked = true;
-    }
-  });
-
-  function updateVisibility(value, text, iconClass, bgClass) {
-    // Atualizar o botão do dropdown
-    const iconElement = document.getElementById('selected-visibility-icon');
-    const textElement = document.getElementById('selected-visibility-text');
-    
-    // Remover classes de background anteriores
-    iconElement.className = iconElement.className.replace(/bg-\w+/g, '');
-    // Adicionar nova classe de background
-    iconElement.className = `flex items-center justify-center w-6 h-6 rounded-full ${bgClass} text-${bgClass.replace('bg-', '')}-content`;
-    
-    // Atualizar o ícone
-    iconElement.innerHTML = `<i class="fas ${iconClass} text-xs"></i>`;
-    
-    // Atualizar o texto
-    textElement.textContent = text;
-    
-    // Atualizar o radio button
-    document.querySelector(`input[name="visibility"][value="${value}"]`).checked = true;
-    
-    // Atualizar os ícones de check
-    document.querySelectorAll('[id^="check-"]').forEach(el => {
-      el.classList.add('opacity-0');
-    });
-    document.getElementById(`check-${value}`).classList.remove('opacity-0');
-    
-    // Salvar a seleção
-    localStorage.setItem('selectedVisibility', JSON.stringify({
-      value: value,
-      text: text,
-      icon: iconClass,
-      bgClass: bgClass
-    }));
-  }
 </script>
 {% endblock %}
