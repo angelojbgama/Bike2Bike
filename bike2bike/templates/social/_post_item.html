@@ -40,7 +40,8 @@
     {% endif %}
 
     {% if post.content %}
-      <div class="prose max-w-none mt-3">
+
+      <div class="prose max-w-none mt-3 break-words">
         {{ post.content|markdown|safe }}
       </div>
     {% endif %}
