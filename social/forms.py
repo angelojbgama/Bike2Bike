@@ -1,44 +1,31 @@
 # forms.py
 from django import forms
 from .models import Post
+import json  # Para possível validação dos dados JSON
+
 from bike2bike.mixins.DaisyUIFormMixin import DaisyUIStyledFormMixin
-
-# forms.py
-
-from django import forms
-from django.utils.safestring import mark_safe
-from bike2bike.mixins.DaisyUIFormMixin import DaisyUIStyledFormMixin
-from .models import Post
-
-# Formulário para criar um post normal (texto e imagem)
-from django import forms
-from django.utils.safestring import mark_safe
-from .models import Post
 
 class NormalPostForm(DaisyUIStyledFormMixin, forms.ModelForm):
-    images = forms.FileField(
-        widget=forms.ClearableFileInput(attrs={'multiple': True}),
-        required=False,
-        label="Imagens"
-    )
-
     class Meta:
         model = Post
-        fields = ["title", "images", "content"]  # ← Removido "visibility"
+        fields = ["title", "content"]
         field_styles = {
             'title': {
                 'classes': 'input input-bordered w-full',
                 'placeholder': 'Digite o título do post'
-            },
-            'images': {
-                'classes': 'file-input file-input-bordered w-full',
-                'show_label': True
             },
             'content': {
                 'classes': 'textarea textarea-bordered',
                 'placeholder': 'Digite o conteúdo do post em markdown'
             }
         }
+    
+    def clean_content(self):
+        content = self.cleaned_data.get('content', "")
+        if len(content) > 500:
+            raise forms.ValidationError("O texto não pode exceder 500 caracteres.")
+        
+        return content
 
 # Formulário para criar um post em formato de carrossel
 class CarouselPostForm(DaisyUIStyledFormMixin, forms.ModelForm):
@@ -105,7 +92,7 @@ class EventPostForm(DaisyUIStyledFormMixin, forms.ModelForm):
 
 # Formulário para criar um post de trajeto de bike
 class BikeRoutePostForm(DaisyUIStyledFormMixin, forms.ModelForm):
-    # Campo oculto que receberá os dados do trajeto em JSON, preenchido via JavaScript
+    # Campo oculto para armazenar os dados da trajetória (em formato JSON)
     bike_trajectory_data = forms.CharField(
         widget=forms.HiddenInput(),
         required=False,
@@ -114,22 +101,26 @@ class BikeRoutePostForm(DaisyUIStyledFormMixin, forms.ModelForm):
 
     class Meta:
         model = Post
-        fields = [
-            "title", 
-            "content", 
-            "shared_link", 
-            "latitude", 
-            "longitude", 
-            "visibility", 
-            "bike_trajectory"
-        ]
+        # Apenas o título será exibido para o usuário.
+        # O campo bike_trajectory_data está declarado separadamente.
+        fields = ["title"]
         field_styles = {
-            'title': {'classes': 'input input-bordered', 'placeholder': 'Título do trajeto'},
-            'content': {'classes': 'textarea textarea-bordered', 'placeholder': 'Descrição do trajeto'},
-            'shared_link': {'classes': 'input input-bordered', 'placeholder': 'Link opcional'},
-            'latitude': {'classes': 'input input-bordered', 'placeholder': 'Latitude'},
-            'longitude': {'classes': 'input input-bordered', 'placeholder': 'Longitude'},
-            'visibility': {'classes': 'select select-bordered'},
-            # O campo bike_trajectory é oculto, pois os dados serão preenchidos via JS
-            'bike_trajectory': {'classes': 'hidden'},
+            'title': {
+                'classes': 'input input-bordered w-full',
+                'placeholder': 'Digite o título da rota'
+            }
         }
+
+    def clean_bike_trajectory_data(self):
+        """
+        Valida o campo bike_trajectory_data, garantindo que os dados sejam um JSON válido.
+        """
+        data = self.cleaned_data.get("bike_trajectory_data")
+        if data:
+            try:
+                import json
+                json.loads(data)
+            except json.JSONDecodeError:
+                raise forms.ValidationError("Dados do trajeto inválidos.")
+        return data
+
