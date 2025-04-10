@@ -114,21 +114,33 @@ class EventPostCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
     
 class BikeRoutePostCreateView(LoginRequiredMixin, CreateView):
+    """
+    View para criação de posts de trajeto de bike.
+    O usuário define a rota clicando no mapa e os dados são enviados via campo oculto.
+    """
     model = Post
     form_class = BikeRoutePostForm
     template_name = "social/posts/create_bikeroute_post.html"
     success_url = reverse_lazy("social:feed")
 
     def form_valid(self, form):
+        # Associa o post ao usuário logado
         form.instance.user = self.request.user
+        
+        # Salva o objeto post inicialmente
         response = super().form_valid(form)
+        
+        # Recupera os dados da trajetória enviados via campo oculto (em formato JSON)
         bike_data = form.cleaned_data.get("bike_trajectory_data")
         if bike_data:
             try:
+                # Converte os dados JSON para uma lista de pontos
                 bike_trajectory = json.loads(bike_data)
+                # Atribui a trajetória ao objeto post e salva a alteração
                 self.object.bike_trajectory = bike_trajectory
                 self.object.save()
             except json.JSONDecodeError:
+                # Se houver erro na conversão, a trajetória não é salva e o fluxo continua
                 pass
         return response
 
@@ -137,26 +149,27 @@ class NormalPostCreateView(LoginRequiredMixin, CreateView):
     form_class = NormalPostForm
     template_name = "social/posts/create_normal_post.html"
     success_url = reverse_lazy("social:feed")
-
+    
     def form_valid(self, form):
+        # Atribui o usuário logado ao post
         form.instance.user = self.request.user
-        form.instance.visibility = self.request.POST.get("visibility", "public")
-        images = self.request.FILES.getlist("images")
         
-        if len(images) > 1:
-            form.add_error(None, "Apenas uma imagem pode ser enviada.")
+        # Define a visibilidade do post, padrão 'public'
+        form.instance.visibility = self.request.POST.get("visibility", "public")
+        
+        # --- Validação para posts apenas com texto ---
+        # Recupera o conteúdo do post, assumindo que o campo de texto no formulário seja 'content'
+        text = form.cleaned_data.get("content", "")
+        
+        # Verifica se o número de caracteres do texto excede 500
+        if len(text) > 500:
+            # Se exceder 500 caracteres, adiciona um erro específico ao campo 'content'
+            form.add_error("content", "O texto não pode exceder 500 caracteres.")
+            # Retorna o formulário inválido com os erros
             return self.form_invalid(form)
-        max_file_size = 2 * 1024 * 1024  # 2MB convertido para bytes
-        if images:
-            image = images[0]
-            if image.size > max_file_size:
-                # Adiciona um erro específico ao campo 'images'
-                form.add_error("images", "Imagem excede o tamanho máximo permitido (2MB).")
-                return self.form_invalid(form)
-        response = super().form_valid(form)
-        if images:
-            PostImage.objects.create(post=self.object, image=images[0])
-        return response
+        
+        # Se passar na validação, chama o método form_valid da classe pai para salvar o post
+        return super().form_valid(form)
 
 
 class PostDetailView(DetailView):
