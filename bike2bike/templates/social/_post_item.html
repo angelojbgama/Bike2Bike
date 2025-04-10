@@ -1,9 +1,11 @@
 {% load humanize avatar_tags %}
-{% load markdown_extras %} {# Filtro customizado para markdown #}
+{% load markdown_extras %}
+{% load static %}
+{% load generate_map %}
 
 <div class="card shadow-xl bg-base-100 mb-4 overflow-hidden">
   
-  {# Carousel de imagens do post #}
+  {# Se o post possuir imagens, renderiza o carousel #}
   {% if post.images.all %}
     <div class="carousel w-full">
       {% for image in post.images.all %}
@@ -17,43 +19,40 @@
       {% endfor %}
     </div>
   {% endif %}
-
+  
   <div class="card-body">
-    
     <div class="flex justify-between items-start">
       <p class="text-sm text-gray-500">
         Por {{ post.user.username }} • {{ post.created_at|naturaltime }}
       </p>
-
-      {# Ícone de visibilidade com tooltip #}
       <div class="tooltip tooltip-left ml-2" data-tip="{% if post.visibility == 'public' %}Público{% elif post.visibility == 'friends' %}Apenas amigos{% else %}Privado{% endif %}">
-        <i class="fas 
-          {% if post.visibility == 'public' %}fa-globe text-primary
-          {% elif post.visibility == 'friends' %}fa-user-friends text-success
-          {% else %}fa-lock text-error
-          {% endif %}"></i>
+        <i class="fas {% if post.visibility == 'public' %}fa-globe text-primary{% elif post.visibility == 'friends' %}fa-user-friends text-success{% else %}fa-lock text-error{% endif %}"></i>
       </div>
     </div>
-
+    
     {% if post.title %}
       <h2 class="text-xl font-bold mt-2">{{ post.title }}</h2>
     {% endif %}
-
+    
     {% if post.content %}
-
       <div class="prose max-w-none mt-3 break-words">
         {{ post.content|markdown|safe }}
       </div>
     {% endif %}
-
+    
+    {# Se o post possuir dados de trajeto, gera uma imagem estática do mapa #}
+    {% if post.bike_trajectory %}
+      {% generate_static_map post.bike_trajectory post.pk 800 300 as map_url %}
+      {% if map_url %}
+        <img src="{{ map_url }}" alt="Mapa do trajeto da bike" class="rounded-lg shadow-md">
+      {% endif %}
+    {% endif %}
+    
     <div class="flex justify-between mt-4">
       <div class="space-x-2">
         <button class="btn btn-sm btn-outline">❤️ Curtir</button>
-        <a href="{% url 'social:publicacao_detalhe' post.pk %}" class="btn btn-sm btn-outline">
-          💬 Comentários
-        </a>
+        <a href="{% url 'social:publicacao_detalhe' post.pk %}" class="btn btn-sm btn-outline">💬 Comentários</a>
       </div>
     </div>
-
   </div>
 </div>
