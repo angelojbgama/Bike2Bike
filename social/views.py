@@ -3,6 +3,8 @@
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
+from django.views.decorators.http import require_POST
+
 from django.http import JsonResponse
 from django.views.generic import TemplateView
 
@@ -10,6 +12,10 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView
 from django.views.generic import DetailView
+
+from .forms import CommentForm
+from django.http import HttpResponseRedirect
+from django.contrib import messages
 
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage
@@ -233,3 +239,22 @@ def like_post(request, post_id):
     else:
         # Se o método não for POST, retorna erro
         return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+
+@login_required
+@require_POST
+def comentar_post_htmx(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    form = CommentForm(request.POST)
+
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.user = request.user
+        comment.post = post
+        comment.save()
+        form = CommentForm()  # limpa o formulário depois de salvar
+
+    return render(request, "social/_comentarios.html", {
+        "post": post,
+        "form": form
+    })
