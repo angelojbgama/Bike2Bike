@@ -19,7 +19,10 @@ import uuid
 import json
 from .models import Post, PostImage, Poll, PollOption
 from .forms import CarouselPostForm, PollPostForm, EventPostForm, BikeRoutePostForm, NormalPostForm
-
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Post, PostLike
 
 def feed_view(request):
     """
@@ -122,7 +125,7 @@ class BikeRoutePostCreateView(LoginRequiredMixin, CreateView):
     form_class = BikeRoutePostForm
     template_name = "social/posts/create_bikeroute_post.html"
     success_url = reverse_lazy("social:feed")
-
+    
     def form_valid(self, form):
         # Associa o post ao usuário logado
         form.instance.user = self.request.user
@@ -191,3 +194,42 @@ def upload_image(request):
 
         return JsonResponse({'success': True, 'url': image_url})
     return JsonResponse({'success': False}, status=400)
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+@login_required  # Garante que apenas usuários autenticados possam curtir/descurtir
+def like_post(request, post_id):
+    # Verifica se o método da requisição é POST
+    if request.method == "POST":
+        try:
+            # Recupera o post, ou retorna 404 se ele não existir
+            post = get_object_or_404(Post, pk=post_id)
+            user = request.user
+            
+            # Verifica se o usuário já curtiu o post
+            like = PostLike.objects.filter(post=post, user=user)
+            if like.exists():
+                # Se já curtiu, remove o registro para descurtir
+                like.delete()
+                # Atualiza o contador de curtidas, garantindo que não fique negativo
+                if post.likes_count > 0:
+                    post.likes_count -= 1
+                post.save(update_fields=['likes_count'])
+                # Retorna a resposta indicando que o post foi descurtido
+                return JsonResponse({'status': 'unliked', 'likes_count': post.likes_count})
+            else:
+                # Se ainda não curtiu, cria o registro de curtida
+                PostLike.objects.create(post=post, user=user)
+                post.likes_count += 1
+                post.save(update_fields=['likes_count'])
+                # Retorna a resposta indicando que o post foi curtido
+                return JsonResponse({'status': 'liked', 'likes_count': post.likes_count})
+        except Exception as e:
+            logger.exception("Erro ao processar o like_post:")
+            # Retorna o erro no JSON (útil para debug, mas remova ou deixe genérico em produção)
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        # Se o método não for POST, retorna erro
+        return JsonResponse({'error': 'Método não permitido'}, status=405)
