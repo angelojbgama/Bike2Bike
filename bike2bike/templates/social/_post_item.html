@@ -2,6 +2,7 @@
 {% load markdown_extras %}
 {% load static %}
 {% load generate_map %}
+{% include "social/modal_comentarios.html" with post=post %}
 
 <!-- Início do card do post -->
 <div class="card shadow-xl bg-base-100 mb-4 overflow-hidden">
@@ -58,9 +59,10 @@
                 data-post-id="{{ post.pk }}">
           ❤️ Curtir <span class="like-count">{{ post.likes_count }}</span>
         </button>
-        <a href="{% url 'social:publicacao_detalhe' post.pk %}" class="btn btn-sm btn-outline">
+        <label for="modal-comentarios-{{ post.pk }}" class="btn btn-sm btn-outline modal-button cursor-pointer">
           💬 Comentários
-        </a>
+        </label>
+
       </div>
     </div>
   </div>
