@@ -3,6 +3,7 @@
 {% load static %}
 {% load generate_map %}
 
+<!-- Início do card do post -->
 <div class="card shadow-xl bg-base-100 mb-4 overflow-hidden">
   
   {# Se o post possuir imagens, renderiza o carousel #}
@@ -21,6 +22,7 @@
   {% endif %}
   
   <div class="card-body">
+    <!-- Informações do post, usuário e data de criação -->
     <div class="flex justify-between items-start">
       <p class="text-sm text-gray-500">
         Por {{ post.user.username }} • {{ post.created_at|naturaltime }}
@@ -40,7 +42,7 @@
       </div>
     {% endif %}
     
-    {# Se o post possuir dados de trajeto, gera uma imagem estática do mapa #}
+    {# Se o post possuir dados de trajeto, gera a imagem estática do mapa #}
     {% if post.bike_trajectory %}
       {% generate_static_map post.bike_trajectory post.pk 800 300 as map_url %}
       {% if map_url %}
@@ -50,9 +52,17 @@
     
     <div class="flex justify-between mt-4">
       <div class="space-x-2">
-        <button class="btn btn-sm btn-outline">❤️ Curtir</button>
-        <a href="{% url 'social:publicacao_detalhe' post.pk %}" class="btn btn-sm btn-outline">💬 Comentários</a>
+        {# Botão de Curtir/Descurtir com classe "like-button" e atributo data-post-id #}
+        <button id="like-button-{{ post.pk }}"
+                class="btn btn-sm btn-outline like-button"
+                data-post-id="{{ post.pk }}">
+          ❤️ Curtir <span class="like-count">{{ post.likes_count }}</span>
+        </button>
+        <a href="{% url 'social:publicacao_detalhe' post.pk %}" class="btn btn-sm btn-outline">
+          💬 Comentários
+        </a>
       </div>
     </div>
   </div>
 </div>
+<!-- Fim do card do post -->
