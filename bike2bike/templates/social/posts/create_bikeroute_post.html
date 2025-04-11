@@ -25,13 +25,37 @@
       </label>
       {{ form.title }}
       {% if form.title.errors %}
-      <span class="text-error">{{ form.title.errors }}</span>
+        <span class="text-error">{{ form.title.errors }}</span>
       {% endif %}
     </div>
     
-    <!-- Campo oculto para armazenar a trajetória gerada automaticamente -->
+    <!-- Campo oculto para armazenar os dados da trajetória (coordenadas em JSON) -->
     {{ form.bike_trajectory_data }}
-
+    
+    <!-- Campo oculto para armazenar os detalhes da rota (ex.: "Rota de bicicleta com distância total de X km...") -->
+    {{ form.content }}
+    
+    <!-- Nova seção: Barras de pesquisa para endereços -->
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700">Ponto de Partida</label>
+      <div class="flex space-x-2">
+        <!-- Input para o endereço de partida -->
+        <input type="text" id="origin-input" placeholder="Digite o endereço de partida" class="input input-bordered w-full" />
+        <!-- Botão para acionar a busca do endereço de partida -->
+        <button id="origin-search-btn" type="button" class="btn btn-sm btn-primary">Buscar</button>
+      </div>
+    </div>
+    
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700">Ponto de Chegada</label>
+      <div class="flex space-x-2">
+        <!-- Input para o endereço de chegada -->
+        <input type="text" id="destination-input" placeholder="Digite o endereço de chegada" class="input input-bordered w-full" />
+        <!-- Botão para acionar a busca do endereço de chegada -->
+        <button id="destination-search-btn" type="button" class="btn btn-sm btn-primary">Buscar</button>
+      </div>
+    </div>
+    
     <!-- Botões para usar as coordenadas do dispositivo e limpar o mapa -->
     <div class="mb-4 flex justify-end space-x-2">
       <button id="locate-btn" class="btn btn-sm btn-primary" type="button">
@@ -45,14 +69,14 @@
     <!-- Instrução para o usuário -->
     <div class="mb-2">
       <p class="text-sm text-gray-600">
-        Clique em dois pontos no mapa para definir a origem e o destino da rota (preferindo as ciclovias).
+        Clique no mapa ou utilize as barras de pesquisa para definir a origem e o destino da rota (preferindo as ciclovias).
       </p>
     </div>
     
     <!-- Container do mapa -->
     <div id="map" class="rounded-lg shadow-lg mb-4"></div>
     
-    <!-- Div para exibir detalhes do trajeto, como a quilometragem -->
+    <!-- Div para exibir detalhes do trajeto (como quilometragem e tempo estimado) -->
     <div id="route-details" class="mb-4 text-center text-sm text-gray-600"></div>
 
     <div class="text-center">
@@ -78,47 +102,140 @@
         attribution: '&copy; OpenStreetMap'
       }).addTo(map);
       
-      // Variáveis de estado para armazenar pontos, marcadores e o controle de rota
+      // Variáveis para pontos resultantes do clique no mapa (método alternativo)
       var waypoints = [];
-      var markers = []; // Armazena os marcadores adicionados no mapa
+      var markers = []; // Armazena os marcadores adicionados pelo clique
+      
+      // Variáveis para armazenar os pontos e marcadores gerados pela pesquisa de endereços
+      var originPoint = null;
+      var destinationPoint = null;
+      var originMarker = null;
+      var destinationMarker = null;
+      
+      // Variável para armazenar o controle de rota no mapa
       var routeControl = null;
       
-      // Função para adicionar um marcador e armazená-lo no array "markers"
+      // Função para adicionar um marcador no mapa (para cliques)
       function addMarker(latlng) {
         var marker = L.marker(latlng).addTo(map);
         markers.push(marker);
       }
       
-      // Evento de clique no mapa: registra até dois pontos (origem e destino)
+      // Função de geocodificação usando a API do Nominatim para converter endereço em coordenadas
+      function geocodeAddress(query, callback) {
+        fetch("https://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(query))
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(data) {
+            if (data && data.length > 0) {
+              // Pega o primeiro resultado da busca
+              var lat = parseFloat(data[0].lat);
+              var lon = parseFloat(data[0].lon);
+              callback(null, L.latLng(lat, lon));
+            } else {
+              callback("Nenhum resultado encontrado");
+            }
+          })
+          .catch(function(error) {
+            callback(error);
+          });
+      }
+      
+      // Função para calcular e exibir a rota com base nos pontos de partida e chegada
+      function updateRoute(){
+        // Monta o array de pontos usando os dados das pesquisas
+        var points = [];
+        if (originPoint) { points.push(originPoint); }
+        if (destinationPoint) { points.push(destinationPoint); }
+        
+        // Se existirem dois pontos, calcula a rota
+        if (points.length === 2) {
+          // Remove o controle de rota anterior, se existir
+          if (routeControl !== null) {
+            map.removeControl(routeControl);
+          }
+          // Cria um novo controle de rota usando o serviço OSRM com perfil "cycling"
+          routeControl = L.Routing.control({
+            waypoints: points,
+            router: new L.Routing.OSRMv1({
+              serviceUrl: 'https://router.project-osrm.org/route/v1',
+              profile: 'cycling'
+            }),
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            show: false,
+            createMarker: function(i, wp) {
+              return L.marker(wp.latLng);
+            }
+          }).addTo(map);
+          
+          // Ao encontrar a rota, extrai informações para atualizar os campos ocultos
+          routeControl.on('routesfound', function(e) {
+            var route = e.routes[0];
+            // Atualiza o campo oculto com os dados da trajetória (coordenadas)
+            var hiddenInput = document.querySelector('[name="bike_trajectory_data"]');
+            if (hiddenInput) {
+              hiddenInput.value = JSON.stringify(route.coordinates);
+            }
+            if (route.summary) {
+              // Converte a distância (metros para km com 2 casas decimais)
+              var km = (route.summary.totalDistance / 1000).toFixed(2);
+              // Converte o tempo (segundos para minutos e horas)
+              var totalTimeInSeconds = route.summary.totalTime;
+              var totalTimeInMinutes = Math.round(totalTimeInSeconds / 60);
+              var hours = Math.floor(totalTimeInMinutes / 60);
+              var minutes = totalTimeInMinutes % 60;
+              var timeStr = (hours > 0 ? hours + "h " : "") + minutes + "min";
+              
+              // Monta o texto com os detalhes da rota
+              var routeDetailsText = "Rota de bicicleta com distância total de " + km +
+                " km e tempo estimado de " + timeStr + ".";
+              
+              // Atualiza a div de detalhes para o usuário
+              var detailsDiv = document.getElementById("route-details");
+              if (detailsDiv) {
+                detailsDiv.innerHTML = "<p>" + routeDetailsText + "</p>";
+              }
+              // Atualiza o campo oculto "content" que será salvo no banco de dados
+              var contentInput = document.querySelector('[name="content"]');
+              if (contentInput) {
+                contentInput.value = routeDetailsText;
+              }
+            }
+          });
+        }
+      }
+      
+      // Evento para o clique no mapa (método alternativo à pesquisa)
       map.on('click', function(e) {
         if (waypoints.length >= 2) return; // Limita a dois pontos
         var latlng = e.latlng;
         waypoints.push(latlng);
         addMarker(latlng);
         
-        // Se dois pontos foram selecionados, calcula a rota automaticamente
         if (waypoints.length === 2) {
-          // Se existir uma rota anterior, remova-a
+          // Remove rota anterior, se houver
           if (routeControl !== null) {
             map.removeControl(routeControl);
           }
-          // Cria o controle de rota usando o serviço OSRM com o perfil "cycling"
+          // Cria a rota com os pontos definidos por clique
           routeControl = L.Routing.control({
             waypoints: waypoints,
             router: new L.Routing.OSRMv1({
               serviceUrl: 'https://router.project-osrm.org/route/v1',
-              profile: 'cycling' // Define o perfil para rotas de bicicleta
+              profile: 'cycling'
             }),
             addWaypoints: false,
             draggableWaypoints: false,
             fitSelectedRoutes: true,
-            show: false,  // Oculta o painel de rotas
+            show: false,
             createMarker: function(i, wp) {
               return L.marker(wp.latLng);
             }
           }).addTo(map);
           
-          // Quando a rota é encontrada, salva as coordenadas e mostra detalhes como distância
           routeControl.on('routesfound', function(e) {
             var route = e.routes[0];
             var hiddenInput = document.querySelector('[name="bike_trajectory_data"]');
@@ -126,18 +243,28 @@
               hiddenInput.value = JSON.stringify(route.coordinates);
             }
             if (route.summary) {
-              // Converte a distância de metros para quilômetros, formatada com 2 casas decimais
               var km = (route.summary.totalDistance / 1000).toFixed(2);
+              var totalTimeInSeconds = route.summary.totalTime;
+              var totalTimeInMinutes = Math.round(totalTimeInSeconds / 60);
+              var hours = Math.floor(totalTimeInMinutes / 60);
+              var minutes = totalTimeInMinutes % 60;
+              var timeStr = (hours > 0 ? hours + "h " : "") + minutes + "min";
+              var routeDetailsText = "Rota de bicicleta com distância total de " + km +
+                " km e tempo estimado de " + timeStr + ".";
               var detailsDiv = document.getElementById("route-details");
               if (detailsDiv) {
-                detailsDiv.innerHTML = "<p>Distância: " + km + " km</p>";
+                detailsDiv.innerHTML = "<p>" + routeDetailsText + "</p>";
+              }
+              var contentInput = document.querySelector('[name="content"]');
+              if (contentInput) {
+                contentInput.value = routeDetailsText;
               }
             }
           });
         }
       });
       
-      // Funcionalidade do botão "Usar minhas coordenadas"
+      // Evento para o botão "Usar minhas coordenadas"
       var locateBtn = document.getElementById("locate-btn");
       locateBtn.addEventListener("click", function(e) {
         e.preventDefault();
@@ -152,39 +279,97 @@
         L.circle(e.latlng, radius).addTo(map);
       });
       
-      // Em caso de erro na localização, exibe um alerta
+      // Exibe alerta em caso de erro na localização
       map.on("locationerror", function(e) {
         alert("Não foi possível localizar sua posição: " + e.message);
       });
       
-      // Funcionalidade do botão "Limpar Mapa" para reiniciar o processo
+      // Eventos para a busca de endereço via pesquisa
+      
+      // Botão de pesquisa para o ponto de partida
+      var originSearchBtn = document.getElementById("origin-search-btn");
+      originSearchBtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        var query = document.getElementById("origin-input").value;
+        if (query) {
+          geocodeAddress(query, function(err, latlng) {
+            if (err) {
+              alert("Endereço de partida não encontrado.");
+            } else {
+              // Remove marcador anterior, se existir
+              if (originMarker) {
+                map.removeLayer(originMarker);
+              }
+              originPoint = latlng;
+              originMarker = L.marker(latlng).addTo(map).bindPopup("Partida").openPopup();
+              map.setView(latlng, 14); // Centraliza o mapa no ponto encontrado
+              updateRoute(); // Atualiza a rota se o destino também estiver definido
+            }
+          });
+        }
+      });
+      
+      // Botão de pesquisa para o ponto de chegada
+      var destinationSearchBtn = document.getElementById("destination-search-btn");
+      destinationSearchBtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        var query = document.getElementById("destination-input").value;
+        if (query) {
+          geocodeAddress(query, function(err, latlng) {
+            if (err) {
+              alert("Endereço de chegada não encontrado.");
+            } else {
+              // Remove marcador anterior, se existir
+              if (destinationMarker) {
+                map.removeLayer(destinationMarker);
+              }
+              destinationPoint = latlng;
+              destinationMarker = L.marker(latlng).addTo(map).bindPopup("Chegada").openPopup();
+              map.setView(latlng, 14); // Centraliza o mapa no ponto encontrado
+              updateRoute(); // Atualiza a rota se a partida também estiver definida
+            }
+          });
+        }
+      });
+      
+      // Evento para limpar o mapa e reiniciar os campos e variáveis
       var clearBtn = document.getElementById("clear-btn");
       clearBtn.addEventListener("click", function(e) {
         e.preventDefault();
         
-        // Remove todos os marcadores adicionados
+        // Remove marcadores gerados por clique
         markers.forEach(function(marker) {
           map.removeLayer(marker);
         });
         markers = [];
+        waypoints = [];
         
-        // Remove o controle de rota, se houver, e reseta a variável
+        // Remove os marcadores de pesquisa e reseta os pontos
+        if (originMarker) { map.removeLayer(originMarker); originMarker = null; originPoint = null; }
+        if (destinationMarker) { map.removeLayer(destinationMarker); destinationMarker = null; destinationPoint = null; }
+        
+        // Limpa os inputs de endereço
+        document.getElementById("origin-input").value = "";
+        document.getElementById("destination-input").value = "";
+        
+        // Remove a rota, se existir
         if (routeControl !== null) {
           map.removeControl(routeControl);
           routeControl = null;
         }
         
-        // Limpa os waypoints e a área de detalhes da rota
-        waypoints = [];
+        // Limpa as áreas de detalhes e os campos ocultos
         var detailsDiv = document.getElementById("route-details");
         if (detailsDiv) {
           detailsDiv.innerHTML = "";
         }
-        
-        // Limpa o valor do campo oculto (trajetória)
-        var hiddenInput = document.querySelector('[name="bike_trajectory_data"]');
-        if (hiddenInput) {
-          hiddenInput.value = "";
+        var hiddenTrajectory = document.querySelector('[name="bike_trajectory_data"]');
+        if (hiddenTrajectory) {
+          hiddenTrajectory.value = "";
+        }
+        var contentInput = document.querySelector('[name="content"]');
+        if (contentInput) {
+          contentInput.value = "";
         }
       });
     });
