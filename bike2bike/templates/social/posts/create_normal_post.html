@@ -11,7 +11,7 @@
 <div class="container mx-auto py-8 max-w-2xl">
   <h1 class="text-2xl font-bold mb-4">Criar Post no Estilo Blog</h1>
 
-  <!-- Removido o atributo enctype pois não há mais upload de arquivos -->
+  <!-- Formulário com CSRF Token -->
   <form method="post" class="space-y-6">
     {% csrf_token %}
 
@@ -26,6 +26,61 @@
         <span class="label-text-alt text-error">{{ form.title.errors }}</span>
       </label>
       {% endif %}
+    </div>
+
+    <!-- ✅ NOVO CAMPO: Visibilidade (Dropdown customizado com ícones e cores) -->
+    <div class="form-control">
+      <div class="flex items-center justify-between">
+        <label class="label py-1">
+          <span class="label-text font-medium">Visibilidade</span>
+        </label>
+        
+        <div class="dropdown dropdown-end">
+          <!-- Botão do dropdown -->
+          <div tabindex="0" role="button" class="btn btn-sm btn-ghost px-2 h-8 flex items-center gap-1.5">
+            <div id="selected-visibility-icon" class="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-content">
+              <i class="fas fa-globe text-xs"></i>
+            </div>
+            <span id="selected-visibility-text" class="text-xs font-medium">Público</span>
+            <i class="fas fa-chevron-down text-xs ml-0.5"></i>
+          </div>
+
+          <!-- Menu dropdown -->
+          <div tabindex="0" class="dropdown-content z-[1] menu p-1 shadow bg-base-100 rounded-box w-40">
+            <div class="flex flex-col gap-1">
+              <!-- Opção: Público -->
+              <label class="flex items-center gap-2 p-2 hover:bg-base-200 rounded-md cursor-pointer" onclick="updateVisibility('public', 'Público', 'fa-globe', 'bg-primary')">
+                <input type="radio" name="visibility" value="public" class="hidden peer" checked />
+                <div class="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-content">
+                  <i class="fas fa-globe text-xs"></i>
+                </div>
+                <span class="text-xs">Público</span>
+                <i class="fas fa-check ml-auto opacity-0" id="check-public"></i>
+              </label>
+
+              <!-- Opção: Amigos -->
+              <label class="flex items-center gap-2 p-2 hover:bg-base-200 rounded-md cursor-pointer" onclick="updateVisibility('friends', 'Amigos', 'fa-user-friends', 'bg-success')">
+                <input type="radio" name="visibility" value="friends" class="hidden peer" />
+                <div class="flex items-center justify-center w-6 h-6 rounded-full bg-success text-success-content">
+                  <i class="fas fa-user-friends text-xs"></i>
+                </div>
+                <span class="text-xs">Amigos</span>
+                <i class="fas fa-check ml-auto opacity-0" id="check-friends"></i>
+              </label>
+
+              <!-- Opção: Privado -->
+              <label class="flex items-center gap-2 p-2 hover:bg-base-200 rounded-md cursor-pointer" onclick="updateVisibility('private', 'Privado', 'fa-lock', 'bg-error')">
+                <input type="radio" name="visibility" value="private" class="hidden peer" />
+                <div class="flex items-center justify-center w-6 h-6 rounded-full bg-error text-error-content">
+                  <i class="fas fa-lock text-xs"></i>
+                </div>
+                <span class="text-xs">Privado</span>
+                <i class="fas fa-check ml-auto opacity-0" id="check-private"></i>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Campo: Conteúdo com EasyMDE -->
@@ -50,10 +105,9 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<!-- Inclusão do script do EasyMDE -->
+<!-- Script do EasyMDE -->
 <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
 <script>
-  // Inicializa o EasyMDE ao carregar a página, aplicando o editor no campo 'content'
   window.onload = function () {
     const textarea = document.querySelector('textarea[name="content"]');
     if (textarea) {
@@ -65,5 +119,41 @@
       });
     }
   };
+</script>
+
+<!-- ✅ Script de controle do dropdown de visibilidade -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('check-public').classList.remove('opacity-0');
+    const savedVisibility = localStorage.getItem('selectedVisibility');
+    if (savedVisibility) {
+      const option = JSON.parse(savedVisibility);
+      updateVisibility(option.value, option.text, option.icon, option.bgClass);
+      document.querySelector(`input[name="visibility"][value="${option.value}"]`).checked = true;
+    }
+  });
+
+  function updateVisibility(value, text, iconClass, bgClass) {
+    const iconElement = document.getElementById('selected-visibility-icon');
+    const textElement = document.getElementById('selected-visibility-text');
+
+    iconElement.className = `flex items-center justify-center w-6 h-6 rounded-full ${bgClass} text-${bgClass.replace('bg-', '')}-content`;
+    iconElement.innerHTML = `<i class="fas ${iconClass} text-xs"></i>`;
+    textElement.textContent = text;
+
+    document.querySelector(`input[name="visibility"][value="${value}"]`).checked = true;
+
+    document.querySelectorAll('[id^="check-"]').forEach(el => {
+      el.classList.add('opacity-0');
+    });
+    document.getElementById(`check-${value}`).classList.remove('opacity-0');
+
+    localStorage.setItem('selectedVisibility', JSON.stringify({
+      value: value,
+      text: text,
+      icon: iconClass,
+      bgClass: bgClass
+    }));
+  }
 </script>
 {% endblock %}
