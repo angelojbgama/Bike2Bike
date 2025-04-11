@@ -5,6 +5,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType  # Para o sistema de relatórios
 from django.contrib.contenttypes.fields import GenericForeignKey
 import re
+from django.contrib.auth.models import User
+from django.conf import settings
+
 
 # Obtém o modelo de usuário (suporte a modelos customizados)
 User = get_user_model()
@@ -34,54 +37,38 @@ class Post(models.Model):
 
     # Campos básicos do post
     title = models.CharField(max_length=200, blank=True, null=True)  # Título opcional
-    content = models.TextField(blank=True, null=True)  # Conteúdo do post (texto livre)
-
-    # Controle de datas: criação e última atualização
+    content = models.TextField(blank=True, null=True)  # Conteúdo do post
     created_at = models.DateTimeField(auto_now_add=True)  # Data e hora de criação
     updated_at = models.DateTimeField(auto_now=True)  # Data e hora da última atualização
 
-    # Contadores de edições, curtidas, comentários e visualizações
-    edit_count = models.PositiveIntegerField(default=0)  # Número de edições realizadas
-    likes_count = models.PositiveIntegerField(default=0)  # Número de curtidas
-    comments_count = models.PositiveIntegerField(default=0)  # Número de comentários
-    views_count = models.PositiveIntegerField(default=0)  # Número de visualizações
+    # Contadores (incluindo o de curtidas)
+    edit_count = models.PositiveIntegerField(default=0)
+    likes_count = models.PositiveIntegerField(default=0)  # Contador de curtidas
+    comments_count = models.PositiveIntegerField(default=0)
+    views_count = models.PositiveIntegerField(default=0)
 
-    # Localização do post para cálculos com Haversine
-    latitude = models.FloatField(blank=True, null=True)  # Latitude do local
-    longitude = models.FloatField(blank=True, null=True)  # Longitude do local
+    # Localização
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
 
-    # Campo para armazenar link compartilhado (pode ser YouTube ou outro)
+    # Link compartilhado e visibilidade
     shared_link = models.URLField(blank=True, null=True)
-
-    # Visibilidade do post: público, amigos ou privado
     VISIBILITY_CHOICES = [
         ('public', 'Público'),
         ('friends', 'Amigos'),
         ('private', 'Privado'),
     ]
-    visibility = models.CharField(
-        max_length=10,
-        choices=VISIBILITY_CHOICES,
-        default='public'
-    )
+    visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='public')
 
-    # Campos para identificar eventos
-    is_event = models.BooleanField(default=False)  # Indica se o post é um evento
-    event_date = models.DateTimeField(blank=True, null=True)  # Data e hora do evento, se aplicável
-
-    # Campo para armazenar o trajeto da bike (armazenado em JSON com uma lista de coordenadas)
-    # Exemplo de formato: [[lat1, lon1], [lat2, lon2], ..., [latN, lonN]]
+    # Campos para eventos e trajeto de bike
+    is_event = models.BooleanField(default=False)
+    event_date = models.DateTimeField(blank=True, null=True)
     bike_trajectory = models.JSONField(blank=True, null=True)
 
-    # Relacionamento com categorias e tags (ManyToMany)
-    categories = models.ManyToManyField(Category, blank=True, related_name='posts')
-    tags = models.ManyToManyField(Tag, blank=True, related_name='posts')
-
-    # Campo extra para armazenar informações adicionais em formato JSON
-    extra_data = models.JSONField(blank=True, null=True)
+    # Relacionamentos ManyToMany (categorias, tags, etc.) podem existir aqui
 
     def __str__(self):
-        # Representa o post com o nome do usuário e a data de criação
+        # Representa o post com o nome do usuário e data de criação
         return f"{self.user.username} - {self.created_at.strftime('%d/%m/%Y %H:%M')}"
 
     def is_youtube_link(self):
@@ -92,6 +79,21 @@ class Post(models.Model):
         if self.shared_link:
             return bool(re.search(r'(youtube\.com|youtu\.be)', self.shared_link, re.IGNORECASE))
         return False
+
+# Novo modelo para registrar as curtidas dos posts
+class PostLike(models.Model):
+    # Associa o like ao post
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_likes')
+    # Associa o like ao usuário que o realizou
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_likes')
+    liked_at = models.DateTimeField(auto_now_add=True)  # Data e hora em que o like foi realizado
+
+    class Meta:
+        # Garante que cada usuário possa curtir um post somente uma vez
+        unique_together = ('post', 'user')
+
+    def __str__(self):
+        return f"{self.user.username} curtiu {self.post.pk} em {self.liked_at}"
 
 ###############################################
 # MODELO PARA IMAGENS ASSOCIADAS AO POST
