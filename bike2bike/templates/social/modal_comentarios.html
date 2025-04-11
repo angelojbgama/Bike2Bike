@@ -1,0 +1,14 @@
+<input type="checkbox" id="modal-comentarios-{{ post.pk }}" class="modal-toggle" />
+<div class="modal" role="dialog">
+  <div class="modal-box w-11/12 max-w-2xl bg-base-100">
+    <h3 class="font-bold text-lg mb-2">Comentários</h3>
+
+    <div id="comentarios-post-{{ post.pk }}">
+      {% include "social/_comentarios.html" with post=post form=form %}
+    </div>
+
+    <div class="modal-action">
+      <label for="modal-comentarios-{{ post.pk }}" class="btn">Fechar</label>
+    </div>
+  </div>
+</div>
