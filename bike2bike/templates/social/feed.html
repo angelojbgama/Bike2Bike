@@ -44,7 +44,7 @@
   let currentPage = 1;
   let isLoading = false;
   let hasNext = {{ page_obj.has_next|yesno:"true,false" }};
-  
+
   // Função para carregar mais posts via AJAX com um delay aleatório
   // (aqui o comentário diz entre 3 e 5 segundos, mas o cálculo atual gera entre 1 e 2 segundos)
   function loadMorePosts() {
@@ -52,10 +52,10 @@
     isLoading = true;
     currentPage += 1;
     document.getElementById('loading').style.display = 'block';
-    
+
     // Gera um delay aleatório entre 1000 e 2000 milissegundos
     const delay = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
-    
+
     setTimeout(function() {
       fetch("{% url 'social:feed_more' %}?page=" + currentPage, {
         headers: {
@@ -69,7 +69,7 @@
         hasNext = data.has_next;
         isLoading = false;
         document.getElementById('loading').style.display = 'none';
-        
+
         // Se o conteúdo da página não preencher a tela, tenta carregar mais posts automaticamente
         if (hasNext && document.body.offsetHeight < window.innerHeight + 100) {
           loadMorePosts();
@@ -82,19 +82,67 @@
       });
     }, delay);
   }
-  
+
   // Dispara o carregamento automático quando o usuário rola a página
   window.addEventListener('scroll', function() {
     if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
       loadMorePosts();
     }
   });
-  
+
   // Se, após o carregamento da página, o conteúdo não preencher a tela, carrega mais posts
   window.addEventListener('load', function() {
     if (hasNext && document.body.offsetHeight < window.innerHeight + 100) {
       loadMorePosts();
     }
+  });
+</script>
+
+<!-- JavaScript para Delegação de Eventos do Botão de Curtir/Descurtir -->
+<script>
+  // Aguarda que o DOM esteja completamente carregado
+  document.addEventListener("DOMContentLoaded", function() {
+      // Seleciona o contêiner do feed onde os posts são renderizados
+      const feedContainer = document.getElementById("feed");
+
+      // Delegação de evento: captura cliques em qualquer elemento com a classe "like-button"
+      feedContainer.addEventListener("click", function(event) {
+          // Verifica se o elemento clicado (ou seu ascendente) possui a classe "like-button"
+          const likeButton = event.target.closest(".like-button");
+          if (likeButton) {
+              event.preventDefault();  // Previna o comportamento padrão do clique
+
+              // Obtém o id do post do atributo data
+              const postId = likeButton.getAttribute("data-post-id");
+              console.log("Clique no like para o post:", postId);
+
+              // Envia a requisição AJAX para processar o like/descurtir
+              fetch(`/social/like_post/${postId}/`, {
+                  method: "POST",
+                  credentials: 'same-origin',  // Envia cookies (necessário para CSRF)
+                  headers: {
+                      "X-CSRFToken": "{{ csrf_token }}", // Token CSRF renderizado
+                      "Content-Type": "application/json"
+                  }
+              })
+              .then(response => {
+                  console.log("Resposta recebida:", response);
+                  return response.json();
+              })
+              .then(data => {
+                  console.log("Dados retornados:", data);
+                  // Atualiza o texto do botão de acordo com o status retornado
+                  if (data.status === "liked") {
+                      likeButton.innerHTML = "❤️ Descurtir <span class='like-count'>" + data.likes_count + "</span>";
+                  } else if (data.status === "unliked") {
+                      likeButton.innerHTML = "❤️ Curtir <span class='like-count'>" + data.likes_count + "</span>";
+                  }
+              })
+              .catch(error => {
+                  console.error("Erro ao processar o like:", error);
+              });
+          }
+      });
   });
 </script>
 
