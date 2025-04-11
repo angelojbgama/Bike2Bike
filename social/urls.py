@@ -16,4 +16,6 @@ urlpatterns = [
     # URL para processar a ação de curtir
     path('like_post/<int:post_id>/', views.like_post, name='like_post'),
     path('publicacao/<int:pk>/', views.PostDetailView.as_view(), name='publicacao_detalhe'),
+    path('post/<int:post_id>/comentar-htmx/', views.comentar_post_htmx, name='comentar_post_htmx'),
+
 ]
