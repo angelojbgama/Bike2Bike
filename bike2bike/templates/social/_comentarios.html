@@ -1,0 +1,52 @@
+<!-- Lista de comentários -->
+{% load humanize avatar_tags %}
+{% load markdown_extras %}
+{% load static %}
+{% load generate_map %}
+<div id="comentarios-lista-{{ post.pk }}" class="max-h-[300px] overflow-y-auto">
+    {% for comment in post.comments.all %}
+      {% if not comment.parent %}
+        <div class="mb-3 border rounded p-3 bg-base-200">
+          <p class="text-sm text-gray-500">
+            {{ comment.user.username }} • {{ comment.created_at|naturaltime }}
+          </p>
+          <p class="mt-1 break-words">{{ comment.content }}</p>
+  
+          <!-- Respostas -->
+          {% for reply in comment.replies.all %}
+            <div class="ml-4 mt-2 border-l-2 pl-2 border-gray-300">
+              <p class="text-xs text-gray-500">{{ reply.user.username }} • {{ reply.created_at|naturaltime }}</p>
+              <p class="text-sm break-words">{{ reply.content }}</p>
+            </div>
+          {% endfor %}
+  
+          <!-- Formulário de resposta -->
+          <form
+            hx-post="{% url 'social:comentar_post_htmx' post.pk %}"
+            hx-target="#comentarios-lista-{{ post.pk }}"
+            hx-swap="outerHTML"
+            class="mt-2"
+          >
+            {% csrf_token %}
+            <input type="hidden" name="parent" value="{{ comment.id }}">
+            <textarea name="content" rows="1" class="textarea textarea-bordered w-full mt-1" placeholder="Responder..."></textarea>
+            <button type="submit" class="btn btn-xs btn-outline mt-1">Responder</button>
+          </form>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  
+  <!-- Formulário principal (novo comentário pai) -->
+  <div id="comentario-form-{{ post.pk }}" class="mt-4">
+    <form
+      hx-post="{% url 'social:comentar_post_htmx' post.pk %}"
+      hx-target="#comentarios-lista-{{ post.pk }}"
+      hx-swap="outerHTML"
+    >
+      {% csrf_token %}
+      <textarea name="content" rows="2" class="textarea textarea-bordered w-full" placeholder="Escreva um comentário..."></textarea>
+      <button type="submit" class="btn btn-primary btn-sm mt-2">Comentar</button>
+    </form>
+  </div>
+  
