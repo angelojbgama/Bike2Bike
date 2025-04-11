@@ -1,6 +1,6 @@
 # forms.py
 from django import forms
-from .models import Post
+from .models import Post, Comment
 import json  # Para possível validação dos dados JSON
 
 from bike2bike.mixins.DaisyUIFormMixin import DaisyUIStyledFormMixin
@@ -130,3 +130,16 @@ class BikeRoutePostForm(DaisyUIStyledFormMixin, forms.ModelForm):
             except json.JSONDecodeError:
                 raise forms.ValidationError("Dados do trajeto inválidos.")
         return data
+    
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content', 'parent']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full',
+                'rows': 2,
+                'placeholder': 'Escreva um comentário...'
+            }),
+            'parent': forms.HiddenInput()
+        }
