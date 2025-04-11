@@ -91,6 +91,11 @@ class EventPostForm(DaisyUIStyledFormMixin, forms.ModelForm):
         }
 
 # Formulário para criar um post de trajeto de bike
+from django import forms
+from .models import Post
+import json
+
+# Formulário para criação de post de trajeto de bike
 class BikeRoutePostForm(DaisyUIStyledFormMixin, forms.ModelForm):
     # Campo oculto para armazenar os dados da trajetória (em formato JSON)
     bike_trajectory_data = forms.CharField(
@@ -98,19 +103,22 @@ class BikeRoutePostForm(DaisyUIStyledFormMixin, forms.ModelForm):
         required=False,
         label="Dados do Trajeto"
     )
-
+    
     class Meta:
         model = Post
-        # Apenas o título será exibido para o usuário.
-        # O campo bike_trajectory_data está declarado separadamente.
-        fields = ["title"]
+        # Incluímos o campo "content" para armazenar os detalhes da rota
+        fields = ["title", "content"]
+        # Define o widget do campo "content" como HiddenInput para que não seja exibido para o usuário
+        widgets = {
+            'content': forms.HiddenInput(),
+        }
         field_styles = {
             'title': {
                 'classes': 'input input-bordered w-full',
                 'placeholder': 'Digite o título da rota'
             }
         }
-
+    
     def clean_bike_trajectory_data(self):
         """
         Valida o campo bike_trajectory_data, garantindo que os dados sejam um JSON válido.
@@ -118,9 +126,7 @@ class BikeRoutePostForm(DaisyUIStyledFormMixin, forms.ModelForm):
         data = self.cleaned_data.get("bike_trajectory_data")
         if data:
             try:
-                import json
                 json.loads(data)
             except json.JSONDecodeError:
                 raise forms.ValidationError("Dados do trajeto inválidos.")
         return data
-
