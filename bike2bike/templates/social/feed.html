@@ -1,149 +1,197 @@
-<!-- templates/social/feed.html -->
+{# templates/social/feed.html #}
 {% extends 'base.html' %}
-{% load humanize avatar_tags %}
+{% load humanize avatar_tags static %}
+
 {% block content %}
 
-<!-- Título do Feed -->
-<h1 class="text-2xl font-bold mb-4">Feed</h1>
+  <!-- ======================================== -->
+  <!-- TÍTULO DO FEED                          -->
+  <!-- ======================================== -->
+  <h1 class="text-2xl font-bold mb-4">Feed</h1>
 
-<!-- MENU DE AÇÕES -->
-<ul class="menu menu-vertical lg:menu-horizontal bg-base-200 rounded-box mb-6">
-  <li>
-    <a href="{% url 'social:nova_postagem_select' %}" class="tooltip" data-tip="Criar Post">
-      Criar Post
-    </a>
-  </li>
-  <li>
-    <a href="{% url 'social:feed' %}" class="tooltip" data-tip="Ver Feed">
-      Feed
-    </a>
-  </li>
-  <li>
-    <a href="{% url 'profile' %}" class="tooltip" data-tip="Meu Perfil">
-      Perfil
-    </a>
-  </li>
-</ul>
+  <!-- ======================================== -->
+  <!-- MENU DE AÇÕES                           -->
+  <!-- ======================================== -->
+  <ul class="menu menu-vertical lg:menu-horizontal bg-base-200 rounded-box mb-6">
+    <li>
+      <label for="create-post-modal"
+             class="btn btn-ghost tooltip"
+             data-tip="Criar Post">
+        Criar Post
+      </label>
+    </li>
+    <li>
+      <a href="{% url 'social:feed' %}" class="tooltip" data-tip="Ver Feed">
+        Feed
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'profile' %}" class="tooltip" data-tip="Meu Perfil">
+        Perfil
+      </a>
+    </li>
+  </ul>
 
-<!-- Container dos posts -->
-<div id="feed">  
-  {# O id definido aqui é 'feed' e deve ser o mesmo utilizado no JavaScript #}
-  {% for post in page_obj %}
-    {% include 'social/_post_item.html' with post=post %}
-  {% endfor %}
-</div>
+  <!-- ======================================== -->
+  <!-- CONTAINER DOS POSTS                     -->
+  <!-- ======================================== -->
+  <div id="feed">
+    {% for post in page_obj %}
+      {% include 'social/_post_item.html' with post=post %}
+    {% endfor %}
+  </div>
 
-<!-- Loading spinner do DaisyUI: exibido enquanto os posts estão carregando -->
-<div id="loading" class="text-center my-6" style="display: none;">
-  <span class="loading loading-dots loading-xl"></span>
-</div>
+  <!-- ======================================== -->
+  <!-- LOADING SPINNER                         -->
+  <!-- ======================================== -->
+  <div id="loading" class="text-center my-6" style="display: none;">
+    <span class="loading loading-dots loading-xl"></span>
+  </div>
 
-<!-- JavaScript para implementar o Infinite Scroll com delay -->
-<script>
-  // Variáveis de controle para paginação e estado de carregamento
-  let currentPage = 1;
-  let isLoading = false;
-  let hasNext = {{ page_obj.has_next|yesno:"true,false" }};
+  <!-- ======================================== -->
+  <!-- MODAL: SELECIONAR TIPO DE POSTAGEM      -->
+  <!-- ======================================== -->
+  <input type="checkbox" id="create-post-modal" class="modal-toggle" />
+  <div class="modal">
+    {# 1) AQUI ajustamos a largura do modal-box para ocupar mais espaço e permitir colunas iguais #}
+    <div class="modal-box relative bg-base-200 w-11/12 max-w-4xl">
+      <!-- botão de fechar -->
+      <label for="create-post-modal"
+             class="btn btn-sm btn-circle absolute right-2 top-2">
+        ✕
+      </label>
 
-  // Função para carregar mais posts via AJAX com um delay aleatório
-  // (aqui o comentário diz entre 3 e 5 segundos, mas o cálculo atual gera entre 1 e 2 segundos)
-  function loadMorePosts() {
-    if (!hasNext || isLoading) return;
-    isLoading = true;
-    currentPage += 1;
-    document.getElementById('loading').style.display = 'block';
+      <!-- título -->
+      <h2 class="text-2xl font-bold mb-6 text-center">
+        Selecione o Tipo de Postagem
+      </h2>
 
-    // Gera um delay aleatório entre 1000 e 2000 milissegundos
-    const delay = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
+      <!-- GRID de botões com colunas iguais -->
+      <div class="grid grid-cols-1
+                  sm:grid-cols-2
+                  md:grid-cols-3
+                  lg:grid-cols-4
+                  xl:grid-cols-5
+                  gap-4 w-full">
+        {# 2) Cada botão agora tem w-full para preencher toda a coluna do grid #}
+        <a href="{% url 'social:nova_postagem_normal' %}"
+           class="btn btn-outline btn-primary btn-md w-full">
+          Post Normal
+        </a>
+        <a href="{% url 'social:nova_postagem_carousel' %}"
+           class="btn btn-outline btn-secondary btn-md w-full">
+          Carrossel
+        </a>
+        <a href="{% url 'social:nova_postagem_poll' %}"
+           class="btn btn-outline btn-info btn-md w-full">
+          Enquete
+        </a>
+        <a href="{% url 'social:nova_postagem_event' %}"
+           class="btn btn-outline btn-warning btn-md w-full">
+          Evento
+        </a>
+        <a href="{% url 'social:nova_postagem_bikeroute' %}"
+           class="btn btn-outline btn-accent btn-md w-full">
+          Trajeto de Bike
+        </a>
+      </div>
+    </div>
+  </div>
+  <!-- ======================================== -->
+  <!-- FIM DO MODAL                            -->
+  <!-- ======================================== -->
 
-    setTimeout(function() {
-      fetch("{% url 'social:feed_more' %}?page=" + currentPage, {
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        // INSERÇÃO CORRETA: usa o id 'feed' para inserir o HTML no contêiner correto
-        document.getElementById('feed').insertAdjacentHTML('beforeend', data.html);
-        hasNext = data.has_next;
-        isLoading = false;
-        document.getElementById('loading').style.display = 'none';
+  <!-- ======================================== -->
+  <!-- SCRIPT: INFINITE SCROLL COM DELAY       -->
+  <!-- ======================================== -->
+  <script>
+    let currentPage = 1;
+    let isLoading = false;
+    let hasNext = {{ page_obj.has_next|yesno:"true,false" }};
 
-        // Se o conteúdo da página não preencher a tela, tenta carregar mais posts automaticamente
-        if (hasNext && document.body.offsetHeight < window.innerHeight + 100) {
-          loadMorePosts();
-        }
-      })
-      .catch(error => {
-        console.error("Erro ao carregar mais posts:", error);
-        isLoading = false;
-        document.getElementById('loading').style.display = 'none';
-      });
-    }, delay);
-  }
+    function loadMorePosts() {
+      if (!hasNext || isLoading) return;
+      isLoading = true;
+      currentPage += 1;
+      document.getElementById('loading').style.display = 'block';
 
-  // Dispara o carregamento automático quando o usuário rola a página
-  window.addEventListener('scroll', function() {
-    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
-      loadMorePosts();
+      const delay = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
+
+      setTimeout(() => {
+        fetch("{% url 'social:feed_more' %}?page=" + currentPage, {
+          headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('feed')
+                  .insertAdjacentHTML('beforeend', data.html);
+          hasNext = data.has_next;
+          isLoading = false;
+          document.getElementById('loading').style.display = 'none';
+          if (hasNext && document.body.offsetHeight < window.innerHeight + 100) {
+            loadMorePosts();
+          }
+        })
+        .catch(err => {
+          console.error("Erro ao carregar mais posts:", err);
+          isLoading = false;
+          document.getElementById('loading').style.display = 'none';
+        });
+      }, delay);
     }
-  });
 
-  // Se, após o carregamento da página, o conteúdo não preencher a tela, carrega mais posts
-  window.addEventListener('load', function() {
-    if (hasNext && document.body.offsetHeight < window.innerHeight + 100) {
-      loadMorePosts();
-    }
-  });
-</script>
+    window.addEventListener('scroll', () => {
+      if ((window.innerHeight + window.scrollY)
+          >= document.body.offsetHeight - 100) {
+        loadMorePosts();
+      }
+    });
 
-<!-- JavaScript para Delegação de Eventos do Botão de Curtir/Descurtir -->
-<script>
-  // Aguarda que o DOM esteja completamente carregado
-  document.addEventListener("DOMContentLoaded", function() {
-      // Seleciona o contêiner do feed onde os posts são renderizados
+    window.addEventListener('load', () => {
+      if (hasNext && document.body.offsetHeight < window.innerHeight + 100) {
+        loadMorePosts();
+      }
+    });
+  </script>
+
+  <!-- ======================================== -->
+  <!-- SCRIPT: LIKE / UNLIKE (DELEGAÇÃO)        -->
+  <!-- ======================================== -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
       const feedContainer = document.getElementById("feed");
 
-      // Delegação de evento: captura cliques em qualquer elemento com a classe "like-button"
-      feedContainer.addEventListener("click", function(event) {
-          // Verifica se o elemento clicado (ou seu ascendente) possui a classe "like-button"
-          const likeButton = event.target.closest(".like-button");
-          if (likeButton) {
-              event.preventDefault();  // Previna o comportamento padrão do clique
+      feedContainer.addEventListener("click", event => {
+        const likeBtn = event.target.closest(".like-button");
+        if (!likeBtn) return;
+        event.preventDefault();
+        const postId = likeBtn.dataset.postId;
 
-              // Obtém o id do post do atributo data
-              const postId = likeButton.getAttribute("data-post-id");
-              console.log("Clique no like para o post:", postId);
-
-              // Envia a requisição AJAX para processar o like/descurtir
-              fetch(`/social/like_post/${postId}/`, {
-                  method: "POST",
-                  credentials: 'same-origin',  // Envia cookies (necessário para CSRF)
-                  headers: {
-                      "X-CSRFToken": "{{ csrf_token }}", // Token CSRF renderizado
-                      "Content-Type": "application/json"
-                  }
-              })
-              .then(response => {
-                  console.log("Resposta recebida:", response);
-                  return response.json();
-              })
-              .then(data => {
-                  console.log("Dados retornados:", data);
-                  // Atualiza o texto do botão de acordo com o status retornado
-                  if (data.status === "liked") {
-                      likeButton.innerHTML = "❤️ Descurtir <span class='like-count'>" + data.likes_count + "</span>";
-                  } else if (data.status === "unliked") {
-                      likeButton.innerHTML = "❤️ Curtir <span class='like-count'>" + data.likes_count + "</span>";
-                  }
-              })
-              .catch(error => {
-                  console.error("Erro ao processar o like:", error);
-              });
+        fetch(`/social/like_post/${postId}/`, {
+          method: "POST",
+          credentials: 'same-origin',
+          headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/json"
           }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "liked") {
+            likeBtn.innerHTML =
+              `❤️ Descurtir <span class="like-count">
+                 ${data.likes_count}
+               </span>`;
+          } else {
+            likeBtn.innerHTML =
+              `❤️ Curtir <span class="like-count">
+                 ${data.likes_count}
+               </span>`;
+          }
+        })
+        .catch(err => console.error("Erro ao processar o like:", err));
       });
-  });
-</script>
+    });
+  </script>
 
 {% endblock %}
